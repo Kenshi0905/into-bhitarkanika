@@ -2,6 +2,8 @@
 
 A self-contained Three.js riverboat experience, set in an artistic interpretation of the mangrove creeks of Bhitarkanika, Odisha.
 
+**Live site:** [into-bhitarkanika.github.io](https://into-bhitarkanika.github.io/)
+
 ## Run
 
 Requires Node.js 20 or newer. No dependency installation or build is required.
@@ -14,9 +16,13 @@ Open http://127.0.0.1:4173/. The server binds only to your computer. The complet
 
 ## GitHub Pages
 
-The [Pages workflow](.github/workflows/pages.yml) publishes `dist/` whenever `main` is updated. It can also be run from **Actions → Deploy GitHub Pages → Run workflow** on `main`. In the repository's **Settings → Pages**, choose **GitHub Actions** as the publishing source. The deployment's `github-pages` environment shows the live URL.
+The canonical repository is [into-bhitarkanika/into-bhitarkanika.github.io](https://github.com/into-bhitarkanika/into-bhitarkanika.github.io), and its independent organization site is [https://into-bhitarkanika.github.io/](https://into-bhitarkanika.github.io/).
 
-There is no build or dependency installation step. Application modules, textures, and recordings use relative paths, so the site works under a repository path such as `/into-bhitarkanika/`. Only `dist/` is uploaded; development scripts and research notes remain in the repository. GitHub Pages serves the site publicly.
+The [Pages workflow](.github/workflows/pages.yml) publishes `dist/` when `main` is updated in that canonical repository. It can also be run from **Actions → Deploy GitHub Pages → Run workflow** on its `main` branch. The deployment job is restricted to that exact repository and branch, so copies and forks cannot deploy through this workflow. In the canonical repository's **Settings → Pages**, **GitHub Actions** is the publishing source. The deployment's `github-pages` environment shows the live URL.
+
+[Kenshi0905/into-bhitarkanika](https://github.com/Kenshi0905/into-bhitarkanika) is a source mirror with GitHub Pages disabled.
+
+There is no build or dependency installation step. Application modules, textures, and recordings use relative paths. Only `dist/` is uploaded; development scripts and research notes remain in the repository. GitHub Pages serves the site publicly.
 
 ## Controls
 
