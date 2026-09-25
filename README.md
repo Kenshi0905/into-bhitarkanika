@@ -12,6 +12,12 @@ npm start
 
 Open http://127.0.0.1:4173/. The server binds only to your computer. The complete static application is in `dist/`; it can also be served by any static host. Three.js r183.2 and its water normal map are included locally.
 
+## GitHub Pages
+
+The [Pages workflow](.github/workflows/pages.yml) publishes `dist/` whenever `main` is updated. It can also be run from **Actions → Deploy GitHub Pages → Run workflow** on `main`. In the repository's **Settings → Pages**, choose **GitHub Actions** as the publishing source. The deployment's `github-pages` environment shows the live URL.
+
+There is no build or dependency installation step. Application modules, textures, and recordings use relative paths, so the site works under a repository path such as `/into-bhitarkanika/`. Only `dist/` is uploaded; development scripts and research notes remain in the repository. GitHub Pages serves the site publicly.
+
 ## Controls
 
 - **W / S** or **up / down**: accelerate / reverse.
