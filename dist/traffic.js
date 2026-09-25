@@ -98,12 +98,12 @@ function mergeParts(parts){
 }
 
 function createBuilder(group){
- const buckets=new Map(),up=new T.Vector3(0,1,0);
- function add(geometry,material,x=0,y=0,z=0,rx=0,ry=0,rz=0){geometry.rotateX(rx);geometry.rotateY(ry);geometry.rotateZ(rz);geometry.translate(x,y,z);if(!buckets.has(material))buckets.set(material,[]);buckets.get(material).push(geometry);}
+ const buckets=new Map(),up=new T.Vector3(0,1,0);let crew=false;
+ function add(geometry,material,x=0,y=0,z=0,rx=0,ry=0,rz=0){geometry.rotateX(rx);geometry.rotateY(ry);geometry.rotateZ(rz);geometry.translate(x,y,z);geometry.userData.crew=crew;if(!buckets.has(material))buckets.set(material,[]);buckets.get(material).push(geometry);}
  function box(w,h,d,material,x,y,z,rx=0,ry=0,rz=0){add(new T.BoxGeometry(w,h,d),material,x,y,z,rx,ry,rz);}
  function bar(a,b,r,material){const delta=new T.Vector3(...b).sub(new T.Vector3(...a));const geometry=new T.CylinderGeometry(r,r,delta.length(),6);geometry.applyQuaternion(new T.Quaternion().setFromUnitVectors(up,delta.normalize()));add(geometry,material,(a[0]+b[0])*.5,(a[1]+b[1])*.5,(a[2]+b[2])*.5);}
- function finish(){for(const [material,geometries] of buckets){const m=new T.Mesh(mergeParts(geometries),material);m.castShadow=true;m.receiveShadow=true;group.add(m);}}
- return {add,box,bar,finish};
+ function finish(){for(const [material,geometries] of buckets){const crewRanges=[];let offset=0;for(const g of geometries){const count=g.index?g.index.count:g.attributes.position.count;if(g.userData.crew)crewRanges.push([offset,count]);offset+=count;}const m=new T.Mesh(mergeParts(geometries),material);if(crewRanges.length)m.userData.crewRanges=crewRanges;m.castShadow=true;m.receiveShadow=true;group.add(m);}}
+ return {add,box,bar,finish,setCrew(value){crew=value;}};
 }
 
 function hullGeometry(length,beam){
@@ -165,7 +165,8 @@ function buildVessel(v,shared){
  // Fenders, life ring, cleats and passengers give a readable scale at river distance.
  b.add(new T.TorusGeometry(.30,.09,7,18),shared.orange,1.73,police?.98:1.8,2.1,0,Math.PI/2);
  for(const z of [-4.25,4]){b.bar([-.16,.87,z],[.16,.87,z],.045,trim);b.bar([0,.7,z],[0,.87,z],.035,trim);}
- function person(x,z,seated,uniform=false){const base=.69;const shirt=uniform?shared.khaki:shared.shirts[v.variant%3];b.add(new T.CapsuleGeometry(.16,.31,3,6),shirt,x,base+(seated?.8:1.1),z);b.add(new T.SphereGeometry(.145,8,6),shared.skin,x,base+(seated?1.22:1.53),z);for(const side of [-1,1])b.bar([x+side*.10,base+(seated?.7:.85),z],[x+side*.1,base+(seated?.3:.1),z-.07],.065,shared.navy);b.add(new T.CylinderGeometry(.23,.23,.05,10),uniform?shared.khaki:shared.cream,x,base+(seated?1.37:1.68),z);}
+ v.people=[];
+ function person(x,z,seated,uniform=false){v.people.push({x,z,seated,uniform,y:.69});b.setCrew(true);const base=.69;const shirt=uniform?shared.khaki:shared.shirts[v.variant%3];b.add(new T.CapsuleGeometry(.16,.31,3,6),shirt,x,base+(seated?.8:1.1),z);b.add(new T.SphereGeometry(.145,8,6),shared.skin,x,base+(seated?1.22:1.53),z);for(const side of [-1,1])b.bar([x+side*.10,base+(seated?.7:.85),z],[x+side*.1,base+(seated?.3:.1),z-.07],.065,shared.navy);b.add(new T.CylinderGeometry(.23,.23,.05,10),uniform?shared.khaki:shared.cream,x,base+(seated?1.37:1.68),z);b.setCrew(false);}
  if(police){person(-.65,2.3,false,true);person(.65,2.6,true,true);}else{person(.62,-3.05,false);person(-1,1.35,true);person(1,.1,true);if(v.variant===0)person(-1,-.6,true);}
  b.finish();
  const motor=new T.Group();motor.position.set(0,.25,v.length*.5-.12);group.add(motor);const cover=new T.Mesh(new T.BoxGeometry(.66,.6,.55),shared.rubber);cover.position.y=.35;motor.add(cover);const shaft=new T.Mesh(new T.BoxGeometry(.13,.85,.14),shared.navy);shaft.position.y=-.18;motor.add(shaft);group.userData.motor=motor;

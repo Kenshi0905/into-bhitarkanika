@@ -120,6 +120,7 @@ function treeGeometry(bark,variant){
 
 export function buildWorld(scene){
  const mobile=smallScreen(),groundMap=texture('mud');groundMap.repeat.set(22,205);
+ let highDetail=false,lastForestZ=0;const standardDetail=[],bankMeshes=[];
  const ground=mat(0xc1b199,{map:groundMap,bumpMap:groundMap,bumpScale:.16,vertexColors:true}),barkMap=texture('bark');barkMap.repeat.set(1,2);
  const bark=mat(0xa9a18b,{map:barkMap,bumpMap:barkMap,bumpScale:.085});
  // Navigable edge stays identical to the collision channel. Wet bank colors reveal the tide line.
@@ -130,7 +131,7 @@ export function buildWorld(scene){
    const y=j===0?-.7:Math.min(2.25,d*.16)-.25+Math.sin(z*.13+d*.15)*.23+range(-.10,.10);pos.push(x,y,z);uv.push(j/M,i/N);
    const wet=T.MathUtils.smoothstep(y,-.15,1.4);c.setRGB(.34+wet*.51,.34+wet*.44,.28+wet*.34);c.multiplyScalar(.94+Math.sin(z*.19+d*.72)*.06);colors.push(c.r,c.g,c.b);
   }}
-  for(let i=0;i<N;i++)for(let j=0;j<M;j++){const a=i*(M+1)+j,b=a+M+1;idx.push(a,b,a+1,b,b+1,a+1);}const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geo.setAttribute('color',new T.Float32BufferAttribute(colors,3));geo.setIndex(idx);geo.computeVertexNormals();const land=mesh(geo,ground,scene);land.material.side=T.DoubleSide;land.castShadow=false;
+  for(let i=0;i<N;i++)for(let j=0;j<M;j++){const a=i*(M+1)+j,b=a+M+1;idx.push(a,b,a+1,b,b+1,a+1);}const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new T.Float32BufferAttribute(uv,2));geo.setAttribute('color',new T.Float32BufferAttribute(colors,3));geo.setIndex(idx);geo.computeVertexNormals();const land=mesh(geo,ground,scene);land.material.side=T.DoubleSide;land.castShadow=false;bankMeshes.push(land);
  }
  const variants=[treeGeometry(bark,0),treeGeometry(bark,1)],leafGeo=leafCluster(mobile?56:82),breeze={value:0};
  const leafMaterial=mat(0xffffff,{map:leafTexture(),vertexColors:true,side:T.DoubleSide,roughness:.72});
@@ -158,7 +159,7 @@ export function buildWorld(scene){
    const sy=range(.72,1.62),sx=range(.9,1.5),yaw=range(0,6.28);dummy.position.set(x,offset<8?.05:1.1,z);dummy.scale.set(sx,sy,sx);dummy.rotation.set(range(-.04,.04),yaw,range(-.095,.095));dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);roots.setMatrixAt(i,dummy.matrix);
    for(let j=0;j<g.crowns.length;j++){const p=g.crowns[j].clone().applyMatrix4(dummy.matrix);const m=new T.Matrix4().compose(p,new T.Quaternion().setFromEuler(new T.Euler(range(-.2,.2),yaw+j,range(-.14,.14))),V(sx*range(.95,1.45),sy*range(1.1,1.65),sx*range(.95,1.45)));leaves.setMatrixAt(i*5+j,m);color.setHSL(range(.23,.29),range(.20,.35),range(.46,.67));leaves.setColorAt(i*5+j,color);}
   }
-  trunks.castShadow=roots.castShadow=leaves.castShadow=true;leaves.receiveShadow=trunks.receiveShadow=roots.receiveShadow=true;trunks.computeBoundingSphere();roots.computeBoundingSphere();leaves.computeBoundingSphere();sections[chunk].add(trunks,roots,leaves);sections[chunk].userData.detailLeaves.push(leaves);sections[chunk].userData.detailRoots.push(roots);
+  trunks.castShadow=roots.castShadow=leaves.castShadow=true;leaves.receiveShadow=trunks.receiveShadow=roots.receiveShadow=true;trunks.computeBoundingSphere();roots.computeBoundingSphere();leaves.computeBoundingSphere();sections[chunk].add(trunks,roots,leaves);sections[chunk].userData.detailLeaves.push(leaves);sections[chunk].userData.detailRoots.push(roots);standardDetail.push(trunks,roots,leaves);
  }
  // Fine breathing roots and scattered fallen twigs break up the wet mud.
  const rootGeo=new T.CylinderGeometry(.012,.067,1,4),twigGeo=new T.CylinderGeometry(.024,.046,1,4);
@@ -166,9 +167,9 @@ export function buildWorld(scene){
   const count=mobile?210:340,pneumatophores=new T.InstancedMesh(rootGeo,bark,count),twigs=new T.InstancedMesh(twigGeo,bark,22);
   for(let i=0;i<count;i++){const z=225-(chunk+random())*112,side=i%2?1:-1,d=range(.3,7);dummy.position.set(center(z)+side*(width(z)+d),.02+d*.06,z);dummy.scale.set(1,range(.25,.9),1);dummy.rotation.set(range(-.3,.3),0,range(-.3,.3));dummy.updateMatrix();pneumatophores.setMatrixAt(i,dummy.matrix);}
   for(let i=0;i<22;i++){const z=225-(chunk+random())*112,side=i%2?1:-1,d=range(2,7);dummy.position.set(center(z)+side*(width(z)+d),d*.1,z);dummy.scale.set(1,range(.6,2.5),1);dummy.rotation.set(Math.PI*.5,range(0,6.28),range(-.2,.2));dummy.updateMatrix();twigs.setMatrixAt(i,dummy.matrix);}
-  pneumatophores.receiveShadow=true;twigs.receiveShadow=true;sections[chunk].add(pneumatophores,twigs);
+  pneumatophores.receiveShadow=true;twigs.receiveShadow=true;sections[chunk].add(pneumatophores,twigs);standardDetail.push(pneumatophores,twigs);
   const shrubCount=mobile?30:46,bushes=new T.InstancedMesh(leafGeo,leafMaterial,shrubCount);
-  for(let i=0;i<shrubCount;i++){const z=225-(chunk+random())*112,side=i%2?1:-1;dummy.position.set(center(z)+side*(width(z)+range(3,18)),range(1.5,2.8),z);dummy.scale.set(range(.75,1.2),range(.7,1.2),range(.75,1.2));dummy.rotation.set(0,range(0,6.28),range(-.2,.2));dummy.updateMatrix();bushes.setMatrixAt(i,dummy.matrix);color.setHSL(.25,.36,range(.45,.64));bushes.setColorAt(i,color);}bushes.castShadow=bushes.receiveShadow=true;bushes.computeBoundingSphere();sections[chunk].add(bushes);
+  for(let i=0;i<shrubCount;i++){const z=225-(chunk+random())*112,side=i%2?1:-1;dummy.position.set(center(z)+side*(width(z)+range(3,18)),range(1.5,2.8),z);dummy.scale.set(range(.75,1.2),range(.7,1.2),range(.75,1.2));dummy.rotation.set(0,range(0,6.28),range(-.2,.2));dummy.updateMatrix();bushes.setMatrixAt(i,dummy.matrix);color.setHSL(.25,.36,range(.45,.64));bushes.setColorAt(i,color);}bushes.castShadow=bushes.receiveShadow=true;bushes.computeBoundingSphere();sections[chunk].add(bushes);standardDetail.push(bushes);
  }
  // Six overlapping depth bands turn scattered shoreline trees into continuous forest.
  // Three-dimensional crowns and low undergrowth cover the floor in bow and overhead views.
@@ -194,30 +195,44 @@ export function buildWorld(scene){
     color.setHSL(range(.22,.29),range(.08,.19),range(.72,.95));crownMesh.setColorAt(crownIndex,color);
    }
   }
-  crowns.receiveShadow=nearCrowns.receiveShadow=true;crowns.computeBoundingSphere();nearCrowns.computeBoundingSphere();section.add(crowns,nearCrowns);stats.canopyVolumes+=index+nearIndex;
+  crowns.receiveShadow=nearCrowns.receiveShadow=true;crowns.computeBoundingSphere();nearCrowns.computeBoundingSphere();section.add(crowns,nearCrowns);stats.canopyVolumes+=index+nearIndex;standardDetail.push(crowns,nearCrowns);
   const underCount=mobile?66:84,understory=new T.InstancedMesh(understoryGeo,understoryMaterial,underCount);
   for(let i=0;i<underCount;i++){
    const side=i%2?1:-1,row=Math.floor(i/2)%3,along=Math.floor(i/6),rowCount=Math.ceil(underCount/6),z=225-(chunk+(along+range(.03,.97))/rowCount)*112;
    const offset=12+row*12+range(-1.4,1.4);dummy.position.set(center(z)+side*(width(z)+offset),range(2.2,3.6),z);dummy.rotation.set(range(-.08,.08),range(0,6.28),range(-.08,.08));dummy.scale.set(range(5.4,8.2),range(1.8,3.0),range(5.3,8.8));dummy.updateMatrix();understory.setMatrixAt(i,dummy.matrix);color.setHSL(range(.24,.29),range(.10,.21),range(.58,.82));understory.setColorAt(i,color);
   }
-  understory.receiveShadow=true;understory.computeBoundingSphere();section.add(understory);stats.understoryVolumes+=underCount;
+  understory.receiveShadow=true;understory.computeBoundingSphere();section.add(understory);stats.understoryVolumes+=underCount;standardDetail.push(understory);
  }
  const dock=new T.Group(),wood=mat(0x9b8060,{map:texture('wood')});const dz=26,dx=center(dz)+width(dz)-3;dock.position.set(dx,.5,dz);
  for(let i=0;i<15;i++)mesh(new T.BoxGeometry(8,.17,.45),wood,dock,2,.4,i*.51-3.6);
  for(const x of [-1,5])for(const z of [-3.7,3.7])bar(V(x,-1,z),V(x,1.3,z),.16,bark,dock);scene.add(dock);
+ for(const object of standardDetail)(object.parent.userData.standardDetail??=[]).push(object);
+ function applyDetailVisibility(section,distance){
+  // Keep the inexpensive original trees beyond the High forest's 430 m extent.
+  // The same section boundaries make this a complete coverage swap, without a
+  // bare strip before the original 510 m desktop draw distance.
+  const replacing=highDetail&&distance<430;
+  if(section.userData.highReplacement!==replacing){section.userData.highReplacement=replacing;for(const object of section.userData.standardDetail??[])object.visible=!replacing;}
+  for(const roots of section.userData.detailRoots)roots.visible=!replacing&&!section.userData.far;
+ }
  return {
+  setHighBankMaterial(material){for(const bank of bankMeshes)bank.material=material??ground;},
+  setHighDetail(enabled){
+   highDetail=Boolean(enabled);for(const section of sections)applyDetailVisibility(section,Math.abs(section.userData.centerZ-lastForestZ));
+  },
   update(t,position){
-   breeze.value=t;if(!position)return;stats.activeSections=0;stats.lodSections=0;
+   breeze.value=t;if(!position)return;lastForestZ=position.z;stats.activeSections=0;stats.lodSections=0;
    for(const section of sections){
     const distance=Math.abs(section.userData.centerZ-position.z);section.visible=distance<(mobile?410:510);if(!section.visible)continue;stats.activeSections++;
     // Hysteresis prevents repeated swaps at a section boundary. The first bank trees
     // retain individual leaves and roots; distant crowns become low-cost volumes.
     const threshold=mobile?180:235,far=distance>(threshold+(section.userData.far?-18:18));
-    if(far!==section.userData.far){section.userData.far=far;for(const leaves of section.userData.detailLeaves){leaves.geometry=far?farLeafGeo:leafGeo;leaves.material=far?canopyMaterial:leafMaterial;leaves.castShadow=!far;}for(const roots of section.userData.detailRoots)roots.visible=!far;}
+    if(far!==section.userData.far){section.userData.far=far;for(const leaves of section.userData.detailLeaves){leaves.geometry=far?farLeafGeo:leafGeo;leaves.material=far?canopyMaterial:leafMaterial;leaves.castShadow=!far;}}
+    applyDetailVisibility(section,distance);
     if(far)stats.lodSections++;
    }
   },
-  getStats(){return {...stats};}
+  getStats(){return {...stats,highDetail};}
  };
 }
 

@@ -1,0 +1,629 @@
+[
+  {
+    "id": "white-throated-kingfisher",
+    "title": "File:White-throated-Kingfisher.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:White-throated-Kingfisher.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/31/White-throated-Kingfisher.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/White-throated-Kingfisher.jpg/960px-White-throated-Kingfisher.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "sha1": "ff0d2b3c8da2e6a17da57cf170e3da3eb9ca118e",
+    "extmetadata": {
+      "DateTime": {
+        "value": "2024-02-13 16:50:14",
+        "source": "mediawiki-metadata",
+        "hidden": ""
+      },
+      "ObjectName": {
+        "value": "White-throated-Kingfisher",
+        "source": "mediawiki-metadata"
+      },
+      "CommonsMetadataExtension": {
+        "value": 1.2,
+        "source": "extension",
+        "hidden": ""
+      },
+      "Categories": {
+        "value": "Self-published work|Files with coordinates missing SDC location of creation|Images from Wiki Loves Birds 2024|Halcyon smyrnensis in Nepal|Halcyon smyrnensis (distant views)|Uploaded via Campaign:wlbirds",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "Assessments": {
+        "value": "quality",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "GPSLatitude": {
+        "value": "27.596307",
+        "source": "commons-desc-page"
+      },
+      "GPSLongitude": {
+        "value": "85.381605",
+        "source": "commons-desc-page"
+      },
+      "GPSMapDatum": {
+        "value": "WGS-84",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "ImageDescription": {
+        "value": "White-throated Kingfisher",
+        "source": "commons-desc-page"
+      },
+      "DateTimeOriginal": {
+        "value": "2019-07-30 09:54:06",
+        "source": "commons-desc-page"
+      },
+      "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+      },
+      "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Mildeep\" title=\"User:Mildeep\">Mildeep</a>",
+        "source": "commons-desc-page"
+      },
+      "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+      },
+      "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+      },
+      "Copyrighted": {
+        "value": "True",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "License": {
+        "value": "cc-by-sa-4.0",
+        "source": "commons-templates",
+        "hidden": ""
+      }
+    },
+    "downloadBytes": 73990
+  },
+  {
+    "id": "common-kingfisher",
+    "title": "File:Common kingfisher (Alcedo atthis bengalensis) with fish.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Common_kingfisher_(Alcedo_atthis_bengalensis)_with_fish.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Common_kingfisher_%28Alcedo_atthis_bengalensis%29_with_fish.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Common_kingfisher_%28Alcedo_atthis_bengalensis%29_with_fish.jpg/960px-Common_kingfisher_%28Alcedo_atthis_bengalensis%29_with_fish.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "sha1": "7716614f20bd713f0850e97b42cc5a37056f63a4",
+    "extmetadata": {
+      "DateTime": {
+        "value": "2018-01-02 17:02:01",
+        "source": "mediawiki-metadata",
+        "hidden": ""
+      },
+      "ObjectName": {
+        "value": "Common kingfisher (Alcedo atthis bengalensis) with fish",
+        "source": "mediawiki-metadata"
+      },
+      "CommonsMetadataExtension": {
+        "value": 1.2,
+        "source": "extension",
+        "hidden": ""
+      },
+      "Categories": {
+        "value": "Alcedo atthis bengalensis|Photographs by Charlesjsharp|Self-published work|Birds of Uttar Pradesh|Featured pictures on Wikipedia, Bengali|Files with coordinates missing SDC location of creation|Alcedo atthis in India|India photographs taken on 2017-11-24|Alcedo atthis eating fish",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "Assessments": {
+        "value": "quality|valued",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "GPSLatitude": {
+        "value": "28.713968",
+        "source": "commons-desc-page"
+      },
+      "GPSLongitude": {
+        "value": "77.810173",
+        "source": "commons-desc-page"
+      },
+      "GPSMapDatum": {
+        "value": "WGS-84",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "ImageDescription": {
+        "value": "Common kingfisher (<i>Alcedo atthis bengalensis</i>) female with fish, Salai, UP, India",
+        "source": "commons-desc-page"
+      },
+      "DateTimeOriginal": {
+        "value": "2017-11-24 10:07:55",
+        "source": "commons-desc-page"
+      },
+      "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>, from <a rel=\"nofollow\" class=\"external text\" href=\"https://www.sharpphotography.co.uk/\">Sharp Photography, sharpphotography.co.uk</a>",
+        "source": "commons-desc-page"
+      },
+      "Artist": {
+        "value": "<bdi><a href=\"https://www.wikidata.org/wiki/Q54800218\" class=\"extiw\" title=\"d:Q54800218\"><span title=\"Scottish wildlife photographer\">Charles J. Sharp</span></a></bdi>",
+        "source": "commons-desc-page"
+      },
+      "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+      },
+      "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+      },
+      "Copyrighted": {
+        "value": "True",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "License": {
+        "value": "cc-by-sa-4.0",
+        "source": "commons-templates",
+        "hidden": ""
+      }
+    },
+    "downloadBytes": 180578
+  },
+  {
+    "id": "black-capped-kingfisher",
+    "title": "File:Black Capped Kingfisher.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Black_Capped_Kingfisher.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/9d/Black_Capped_Kingfisher.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9d/Black_Capped_Kingfisher.jpg/960px-Black_Capped_Kingfisher.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "sha1": "46ba0daad86932962312ca89ec41a56b728da07e",
+    "extmetadata": {
+      "DateTime": {
+        "value": "2012-11-06 20:11:57",
+        "source": "mediawiki-metadata",
+        "hidden": ""
+      },
+      "ObjectName": {
+        "value": "Black Capped Kingfisher",
+        "source": "mediawiki-metadata"
+      },
+      "CommonsMetadataExtension": {
+        "value": 1.2,
+        "source": "extension",
+        "hidden": ""
+      },
+      "Categories": {
+        "value": "Halcyon pileata|Self-published work|Birds of Goa",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "Assessments": {
+        "value": "",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "ImageDescription": {
+        "value": "A Black-capped Kingfisher at Zuari River, Goa, India.",
+        "source": "commons-desc-page"
+      },
+      "DateTimeOriginal": {
+        "value": "2012-01-28 08:54:25",
+        "source": "commons-desc-page"
+      },
+      "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+      },
+      "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Sumeetmoghe&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Sumeetmoghe (page does not exist)\">Sumeet Moghe</a>",
+        "source": "commons-desc-page"
+      },
+      "LicenseShortName": {
+        "value": "CC BY-SA 3.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 3.0",
+        "source": "commons-desc-page"
+      },
+      "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "commons-desc-page"
+      },
+      "Copyrighted": {
+        "value": "True",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "License": {
+        "value": "cc-by-sa-3.0",
+        "source": "commons-templates",
+        "hidden": ""
+      }
+    },
+    "downloadBytes": 96570
+  },
+  {
+    "id": "little-egret",
+    "title": "File:Little egret (Egretta garzetta).jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Little_egret_(Egretta_garzetta).jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Little_egret_%28Egretta_garzetta%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Little_egret_%28Egretta_garzetta%29.jpg/960px-Little_egret_%28Egretta_garzetta%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "sha1": "9e9f50abc7082f4169843addb8bf1a1017d85713",
+    "extmetadata": {
+      "DateTime": {
+        "value": "2026-01-09 21:28:39",
+        "source": "mediawiki-metadata",
+        "hidden": ""
+      },
+      "ObjectName": {
+        "value": "Little egret (Egretta garzetta)",
+        "source": "mediawiki-metadata"
+      },
+      "CommonsMetadataExtension": {
+        "value": 1.2,
+        "source": "extension",
+        "hidden": ""
+      },
+      "Categories": {
+        "value": "CC-Zero|Self-published work|Egretta garzetta in water|Egretta garzetta in France",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "Assessments": {
+        "value": "quality",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "ImageDescription": {
+        "value": "Little egret (<i>Egretta garzetta</i>), Teich bird reserve, France",
+        "source": "commons-desc-page"
+      },
+      "DateTimeOriginal": {
+        "value": "2020-02-06 14:01:33",
+        "source": "commons-desc-page"
+      },
+      "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+      },
+      "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Hobbyfotowiki\" title=\"User:Hobbyfotowiki\">Hobbyfotowiki</a>",
+        "source": "commons-desc-page"
+      },
+      "LicenseShortName": {
+        "value": "CC0",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "UsageTerms": {
+        "value": "Creative Commons Zero, Public Domain Dedication",
+        "source": "commons-desc-page"
+      },
+      "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "LicenseUrl": {
+        "value": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "commons-desc-page"
+      },
+      "Copyrighted": {
+        "value": "True",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "License": {
+        "value": "cc0",
+        "source": "commons-templates",
+        "hidden": ""
+      }
+    },
+    "downloadBytes": 122074
+  },
+  {
+    "id": "brahminy-kite",
+    "title": "File:Brahminy kite (Haliastur indus), Kuakata Eco-Park.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Brahminy_kite_(Haliastur_indus),_Kuakata_Eco-Park.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/4/41/Brahminy_kite_%28Haliastur_indus%29%2C_Kuakata_Eco-Park.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Brahminy_kite_%28Haliastur_indus%29%2C_Kuakata_Eco-Park.jpg/960px-Brahminy_kite_%28Haliastur_indus%29%2C_Kuakata_Eco-Park.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "sha1": "7dd2a2291d05cefd9f384dad984e7d491b400336",
+    "extmetadata": {
+      "DateTime": {
+        "value": "2019-06-23 17:33:29",
+        "source": "mediawiki-metadata",
+        "hidden": ""
+      },
+      "ObjectName": {
+        "value": "Brahminy kite (Haliastur indus), Kuakata Eco-Park",
+        "source": "mediawiki-metadata"
+      },
+      "CommonsMetadataExtension": {
+        "value": 1.2,
+        "source": "extension",
+        "hidden": ""
+      },
+      "Categories": {
+        "value": "Kuakata Eco-Park|Self-published work|Images from Wiki Loves Earth 2019 in Bangladesh|Featured pictures on Wikipedia, Bengali|Files with coordinates missing SDC location of creation|Bangladesh photographs taken on 2019-01-16|Images from Wiki Loves Earth 2019|Winners of Wiki Loves Earth 2019 in Bangladesh|Haliastur indus in Bangladesh|Uploaded via Campaign:wle-bd|Images from Wiki Loves Earth missing SDC location of creation|1 bird in Bangladesh|Natural heritage sites in Bangladesh with known IDs|Birds in flight facing left|Haliastur indus indus in flight",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "Assessments": {
+        "value": "quality",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "GPSLatitude": {
+        "value": "21.812326",
+        "source": "commons-desc-page"
+      },
+      "GPSLongitude": {
+        "value": "90.137519",
+        "source": "commons-desc-page"
+      },
+      "GPSMapDatum": {
+        "value": "WGS-84",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "ImageDescription": {
+        "value": "This is a photo of a natural heritage site in Bangladesh identified by the ID:",
+        "source": "commons-desc-page"
+      },
+      "DateTimeOriginal": {
+        "value": "2019-01-16 23:14:27",
+        "source": "commons-desc-page"
+      },
+      "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+      },
+      "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Md_shahanshah_bappy\" title=\"User:Md shahanshah bappy\">Md shahanshah bappy</a>",
+        "source": "commons-desc-page"
+      },
+      "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+      },
+      "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+      },
+      "Copyrighted": {
+        "value": "True",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "License": {
+        "value": "cc-by-sa-4.0",
+        "source": "commons-templates",
+        "hidden": ""
+      }
+    },
+    "downloadBytes": 64833
+  },
+  {
+    "id": "saltwater-crocodile",
+    "title": "File:Saltwater Crocodile at Bhitarkanika National Park, Odisha, India.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Saltwater_Crocodile_at_Bhitarkanika_National_Park,_Odisha,_India.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Saltwater_Crocodile_at_Bhitarkanika_National_Park%2C_Odisha%2C_India.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Saltwater_Crocodile_at_Bhitarkanika_National_Park%2C_Odisha%2C_India.jpg/960px-Saltwater_Crocodile_at_Bhitarkanika_National_Park%2C_Odisha%2C_India.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "sha1": "f7701473bf1d2c038548c5a4dbfa64927451d0ed",
+    "extmetadata": {
+      "DateTime": {
+        "value": "2016-06-17 11:13:39",
+        "source": "mediawiki-metadata",
+        "hidden": ""
+      },
+      "ObjectName": {
+        "value": "Saltwater Crocodile at Bhitarkanika National Park, Odisha, India",
+        "source": "mediawiki-metadata"
+      },
+      "CommonsMetadataExtension": {
+        "value": 1.2,
+        "source": "extension",
+        "hidden": ""
+      },
+      "Categories": {
+        "value": "Self-published work|Images from Wiki Loves Earth 2016 in India|Uploaded via Campaign:wle-in|Images from Wiki Loves Earth 2016|Crocodilia of India|India photographs taken on 2015-02-23|Images from Wiki Loves Earth missing SDC depicts|Images from Wiki Loves Earth missing SDC location of creation|Reptiles of Bhitarkanika National Park",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "Assessments": {
+        "value": "",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "ImageDescription": {
+        "value": "The largest Crocodile at Bhitarkanika National park",
+        "source": "commons-desc-page"
+      },
+      "DateTimeOriginal": {
+        "value": "2015-02-23 14:59:19",
+        "source": "commons-desc-page"
+      },
+      "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+      },
+      "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Bodhan_nayek&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Bodhan nayek (page does not exist)\">Bodhan nayek</a>",
+        "source": "commons-desc-page"
+      },
+      "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+      },
+      "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+      },
+      "Copyrighted": {
+        "value": "True",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "License": {
+        "value": "cc-by-sa-4.0",
+        "source": "commons-templates",
+        "hidden": ""
+      }
+    },
+    "downloadBytes": 195577
+  },
+  {
+    "id": "mangrove-creek",
+    "title": "File:Mangrove Bhitarkanika 1.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Mangrove_Bhitarkanika_1.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/83/Mangrove_Bhitarkanika_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/83/Mangrove_Bhitarkanika_1.jpg/960px-Mangrove_Bhitarkanika_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "sha1": "b0ead80fd5595018616cc9f7627800a43c80de5a",
+    "extmetadata": {
+      "DateTime": {
+        "value": "2016-06-02 17:51:51",
+        "source": "mediawiki-metadata",
+        "hidden": ""
+      },
+      "ObjectName": {
+        "value": "Mangrove Bhitarkanika 1",
+        "source": "mediawiki-metadata"
+      },
+      "CommonsMetadataExtension": {
+        "value": 1.2,
+        "source": "extension",
+        "hidden": ""
+      },
+      "Categories": {
+        "value": "Mangroves|Bhitarkanika National Park|Self-published work|Images from Wiki Loves Earth 2016 in India|Uploaded via Campaign:wle-in|Images from Wiki Loves Earth 2016|India photographs taken on 2016-01-23|Images from Wiki Loves Earth missing SDC depicts|Images from Wiki Loves Earth missing SDC location of creation",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "Assessments": {
+        "value": "",
+        "source": "commons-categories",
+        "hidden": ""
+      },
+      "ImageDescription": {
+        "value": "This is the photo of mangroves in Bhitarkanika National Park, Odisha.",
+        "source": "commons-desc-page"
+      },
+      "DateTimeOriginal": {
+        "value": "2016-01-23 14:11:15",
+        "source": "commons-desc-page"
+      },
+      "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+      },
+      "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Shubhamg81095&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Shubhamg81095 (page does not exist)\">Shubhamg81095</a>",
+        "source": "commons-desc-page"
+      },
+      "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+      },
+      "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+      },
+      "Copyrighted": {
+        "value": "True",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+      },
+      "License": {
+        "value": "cc-by-sa-4.0",
+        "source": "commons-templates",
+        "hidden": ""
+      }
+    },
+    "downloadBytes": 232434
+  }
+]

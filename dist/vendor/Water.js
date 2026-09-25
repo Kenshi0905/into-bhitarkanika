@@ -86,6 +86,15 @@ class Water extends Mesh {
 		const mirrorCamera = new PerspectiveCamera();
 
 		const renderTarget = new WebGLRenderTarget( textureWidth, textureHeight, { type: HalfFloatType } );
+		// Local quality switch: reuse the reflection target without rebuilding water.
+		this.setReflectionSize = size => renderTarget.setSize( size, size );
+		this.disposeReflection = () => renderTarget.dispose();
+		// Optional hooks bracket the reflection draw only. Callers can collect pass
+		// counters or temporarily simplify reflected objects, then restore them.
+		// For additive renderer.info deltas, reset info once per outer frame and
+		// disable its automatic reset while collecting the frame's pass metrics.
+		let passHooks = null;
+		this.setPassHooks = hooks => { passHooks = hooks || null; };
 
 		const mirrorShader = {
 
@@ -327,22 +336,28 @@ class Water extends Mesh {
 			renderer.state.buffers.depth.setMask( true ); // make sure the depth buffer is writable so it can be properly cleared, see #18897
 
 			if ( renderer.autoClear === false ) renderer.clear();
-			renderer.render( scene, mirrorCamera );
+			const hooks = passHooks;
+			const pass = hooks ? { renderer, scene, camera: mirrorCamera, sourceCamera: camera, water: scope, target: renderTarget } : null;
+			try {
 
-			scope.visible = true;
+				hooks?.beforeReflection?.( pass );
+				renderer.render( scene, mirrorCamera );
 
-			renderer.xr.enabled = currentXrEnabled;
-			renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
+			} finally {
 
-			renderer.setRenderTarget( currentRenderTarget );
+				try {
 
-			// Restore viewport
+					hooks?.afterReflection?.( pass );
 
-			const viewport = camera.viewport;
+				} finally {
 
-			if ( viewport !== undefined ) {
+					scope.visible = true;
+					renderer.xr.enabled = currentXrEnabled;
+					renderer.shadowMap.autoUpdate = currentShadowAutoUpdate;
+					renderer.setRenderTarget( currentRenderTarget );
+					if ( camera.viewport !== undefined ) renderer.state.viewport( camera.viewport );
 
-				renderer.state.viewport( viewport );
+				}
 
 			}
 
