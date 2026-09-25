@@ -37,7 +37,9 @@ The environment includes mangroves with individual folded leaves, irregular bran
 
 Twenty-two modelled birds represent white-throated, common and black-capped kingfishers, little egrets and Brahminy kites. All five species are documented in Bhitarkanika. Calls are assigned only to the two species with licensed recordings. The recordings were not made in the park; provenance is disclosed in the field guide and [research notes](birds-research.md).
 
-Three passenger boats and an occasional police patrol travel the creek, slow down and steer around nearby vessels. The patrol and routes are fictional ambient traffic. Water shows each vessel's wake, and the minimap marks them. Mobile uses less foliage and smaller reflections; distant forest groups are culled and resolution adapts on slower devices.
+Three passenger boats and an occasional police patrol travel the creek, slow down and steer around nearby vessels. The patrol and routes are fictional ambient traffic. Water shows each vessel's wake, and the minimap marks them.
+
+The dense forest uses six overlapping depth bands of opaque, leaf-textured canopy volumes and dark undergrowth behind the detailed shoreline trees. These inexpensive shapes remain three-dimensional from overhead and in reflections. Distant individual-leaf crowns switch to simpler volumes with hysteresis to prevent repeated switching; distant roots and forest sections are culled. Instancing batches repeated geometry. Phones, including landscape phones, use reduced foliage, 512px reflections and 1024px shadows; resolution adapts on slower devices.
 
 The route is approximately 1.2 km and is designed for exploration; it is not a reconstruction of surveyed geography. Desktop graphics hardware is recommended. A WebGL 2 browser and hardware acceleration are required.
 

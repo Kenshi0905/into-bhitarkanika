@@ -1,7 +1,24 @@
 import * as T from 'three';
 import {mesh,bar} from './world.js';
 import {center,width} from './channel.js';
+import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 const V=(x,y,z)=>new T.Vector3(x,y,z);
+// Merge fixed body details, but keep each articulated tail joint independent.
+function batchFixedParts(group){
+ const byMaterial=new Map();
+ for(const child of [...group.children]){
+  if(child.isGroup)batchFixedParts(child);
+  else if(child.isMesh){const parts=byMaterial.get(child.material)||[];parts.push(child);byMaterial.set(child.material,parts);}
+ }
+ for(const [material,parts] of byMaterial){
+  if(parts.length<2)continue;
+  const geometryParts=parts.map(part=>{part.updateMatrix();return part.geometry.clone().applyMatrix4(part.matrix);});
+  const merged=mergeGeometries(geometryParts);geometryParts.forEach(g=>g.dispose());
+  if(!merged)continue;
+  const combined=new T.Mesh(merged,material);combined.castShadow=parts[0].castShadow;combined.receiveShadow=parts[0].receiveShadow;group.add(combined);
+  for(const part of parts){group.remove(part);part.geometry.dispose();}
+ }
+}
 export function createWildlife(scene){
  const hide=new T.MeshStandardMaterial({color:0x4a4b35,roughness:.93}),ridge=new T.MeshStandardMaterial({color:0x343b2b,roughness:.96}),belly=new T.MeshStandardMaterial({color:0x898264,roughness:.93}),eye=new T.MeshStandardMaterial({color:0x9a923e,roughness:.25}),black=new T.MeshStandardMaterial({color:0x101611});
  function crocodile(){
@@ -22,7 +39,7 @@ export function createWildlife(scene){
   for(let j=0;j<13;j++)for(let i=0;i<4;i++){const z=-1.05+j*.18,x=(i-1.5)*.18,y=.44+Math.sqrt(Math.max(0,1-(x/.58)**2))*.1;const scale=mesh(new T.BoxGeometry(.14,.065,.14),ridge,g,x,y,z);scale.rotation.y=.2;}
   const tail=new T.Group();tail.position.set(0,.21,1.18);g.add(tail);const joints=[];let parent=tail;
   for(let i=0;i<6;i++){const joint=new T.Group();joint.position.z=i? .42:0;parent.add(joint);const r=.31*(1-i/6)+.025;mesh(new T.SphereGeometry(1,8,6),hide,joint,0,0,.24).scale.set(r,r*.62,.4);for(const s of [-1,1])mesh(new T.ConeGeometry(.07*(1-i/7),.13*(1-i/7),4),ridge,joint,s*r*.5,r*.52,.22);joints.push(joint);parent=joint;}
-  return {group:g,joints};
+  batchFixedParts(g);return {group:g,joints};
  }
  const animals=[];
  for(const [z,side,scale] of [[-44,-1,1.15],[-96,1,.9],[-270,-1,1.2],[-550,1,1.05],[-760,-1,1]]){

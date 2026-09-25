@@ -4,7 +4,7 @@ import { Water } from './vendor/Water.js';
 // Buoyancy and vertex displacement share this low-amplitude tidal wave field.
 export function waveHeight(x,z,t,wind=1){return wind*(.043*Math.sin(x*.24+z*.16+t*.9)+.025*Math.sin(x*-.43+z*.3-t*1.2)+.012*Math.sin(x*.87+z*.59+t*1.7));}
 export function buildWater(scene,sun){
- const mobile=typeof matchMedia==='function'&&matchMedia('(max-width: 760px)').matches;
+ const mobile=typeof matchMedia==='function'&&matchMedia('(pointer: coarse), (max-width: 760px)').matches;
  const normal=new T.TextureLoader().load('./assets/waternormals.jpg');normal.wrapS=normal.wrapT=T.RepeatWrapping;normal.anisotropy=8;
  const reflectionSize=mobile?512:1024;
  const water=new Water(new T.PlaneGeometry(2400,2400,mobile?144:220,mobile?144:220),{textureWidth:reflectionSize,textureHeight:reflectionSize,waterNormals:normal,sunDirection:sun,sunColor:0xffe7bb,waterColor:0x354337,distortionScale:1.35,fog:true});water.rotation.x=-Math.PI/2;

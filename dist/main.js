@@ -12,17 +12,18 @@ import { renderFieldGuide } from './field-guide.js';
 const $ = id => document.getElementById(id), canvas = $('scene');
 const state = { mode:'motor', cruise:false, camera:0, sound:false, hidden:false, timeIndex:0, paused:false };
 const keys = new Set(), physics = new BoatPhysics(), audio = createNatureAudio();
+const mobileGraphics=matchMedia('(pointer:coarse),(max-width:760px)').matches;
 let renderer;
 try { renderer = new T.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'}); }
 catch (error) { $('loading').hidden=true; $('error').hidden=false; throw error; }
-let pixelRatio = Math.min(devicePixelRatio, innerWidth<760?1.35:1.6);
+let pixelRatio = Math.min(devicePixelRatio, mobileGraphics?1.35:1.6);
 renderer.setPixelRatio(pixelRatio); renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true; renderer.shadowMap.autoUpdate=false; renderer.shadowMap.needsUpdate=true; renderer.shadowMap.type=T.PCFShadowMap;
 renderer.toneMapping=T.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15; renderer.outputColorSpace=T.SRGBColorSpace;
 const scene=new T.Scene(); scene.fog=new T.FogExp2(0xc5c8b4,.004);
 const camera=new T.PerspectiveCamera(48,innerWidth/innerHeight,.15,2600);
 const hemi=new T.HemisphereLight(0xc6dce1,0x4d5136,1.85); scene.add(hemi);
-const sun=new T.DirectionalLight(0xffd8a0,3.1); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+const sun=new T.DirectionalLight(0xffd8a0,3.1); sun.castShadow=true; const shadowSize=mobileGraphics?1024:2048; sun.shadow.mapSize.set(shadowSize,shadowSize);
 Object.assign(sun.shadow.camera,{left:-68,right:68,top:68,bottom:-68,near:1,far:430});
 sun.shadow.bias=-.00025; sun.shadow.normalBias=.03; scene.add(sun,sun.target);
 const sky=buildSky(scene), world=buildWorld(scene), craft=buildBoat(scene), water=buildWater(scene,sky.uniforms.sun.value);
@@ -68,7 +69,7 @@ async function toggleAudio(){
   catch(error){state.sound=false;notice('Bird recordings couldn’t load. Try sound again.');console.warn(error.message);}
   finally{button.disabled=false;}
 }
-function openDialog(id){keys.clear();setMore(false);state.paused=true;$(id).showModal();if(id==='field-guide')$('guide-button').setAttribute('aria-expanded','true');}
+function openDialog(id){keys.clear();setMore(false);$('notice').classList.remove('visible');state.paused=true;$(id).showModal();if(id==='field-guide')$('guide-button').setAttribute('aria-expanded','true');}
 for(const id of ['help-dialog','field-guide']){
   $(id).addEventListener('close',()=>{state.paused=false;keys.clear();if(id==='field-guide'){guide.stopAudio();$('guide-button').setAttribute('aria-expanded','false');}});
   $(id).addEventListener('click',event=>{if(event.target!==$(id))return;const r=$(id).getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)$(id).close();});
@@ -127,7 +128,7 @@ function animate(){
   camera.position.lerp(desired,1-Math.exp(-dt*3.5));camera.lookAt(look);camera.updateMatrixWorld();
   sun.position.copy(sky.uniforms.sun.value).multiplyScalar(250).add(new T.Vector3(physics.x,0,physics.z));sun.target.position.set(physics.x,0,physics.z);sky.sky.position.copy(camera.position);sky.uniforms.time.value=time;
   world.update(time,boat.position);wildlife.update(time,boat.position,water);birds.update(time,boat.position);traffic.update(time,state.paused?0:dt,physics);water.setTraffic(traffic.vessels);water.update(time,boat.position,physics.heading,physics.speed);audio.update(time,camera,birds.birds);
-  if(frame%12===0){$('speed').textContent=(Math.abs(physics.speed)*1.94384).toFixed(1);$('distance').textContent=Math.floor(physics.distance);$('heading-label').textContent=Math.cos(physics.heading)>0?'NORTHBOUND':'SOUTHBOUND';drawMap();const sound=audio.getStatus?.();Object.assign(canvas.dataset,{speed:physics.speed.toFixed(3),position:`${physics.x.toFixed(2)},${physics.z.toFixed(2)}`,heading:physics.heading.toFixed(3),fps:(1/frameAverage).toFixed(0),triangles:renderer.info.render.triangles,mode:state.mode,camera:state.camera,traffic:traffic.vessels.length,birds:birds.birds.length,audioLoaded:sound?.loadedRecordings??0,audioVoices:sound?.activeVoices??0,quality:pixelRatio.toFixed(2)});}
+  if(frame%12===0){$('speed').textContent=(Math.abs(physics.speed)*1.94384).toFixed(1);$('distance').textContent=Math.floor(physics.distance);$('heading-label').textContent=Math.cos(physics.heading)>0?'NORTHBOUND':'SOUTHBOUND';drawMap();const sound=audio.getStatus?.();Object.assign(canvas.dataset,{speed:physics.speed.toFixed(3),position:`${physics.x.toFixed(2)},${physics.z.toFixed(2)}`,heading:physics.heading.toFixed(3),fps:(1/frameAverage).toFixed(0),triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,forest:JSON.stringify(world.getStats?.()??{}),mode:state.mode,camera:state.camera,traffic:traffic.vessels.length,birds:birds.birds.length,audioLoaded:sound?.loadedRecordings??0,audioVoices:sound?.activeVoices??0,quality:pixelRatio.toFixed(2)});}
   // Reduce only rendering resolution on slower devices; handling still runs at a fixed step.
   if(frame>180&&frame%240===0&&frameAverage>.037&&pixelRatio>1){pixelRatio=Math.max(1,pixelRatio-.15);renderer.setPixelRatio(pixelRatio);renderer.setSize(innerWidth,innerHeight);}
   if(time>noticeUntil)$('notice').classList.remove('visible');if(frame%4===0)renderer.shadowMap.needsUpdate=true;renderer.render(scene,camera);if(frame===2){$('loading').classList.add('done');canvas.dataset.ready='true';}frame++;

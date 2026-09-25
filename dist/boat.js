@@ -1,6 +1,32 @@
 import * as T from 'three';
 import {mesh,bar,texture} from './world.js';
+import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 const V=(x,y,z)=>new T.Vector3(x,y,z);
+
+// Keep animated groups in place; combine only their immutable mesh children.
+// Local transforms are baked once, reducing repeated draws in shadows and reflections.
+function batchStaticParts(group,animated){
+ const buckets=new Map();
+ for(const child of [...group.children]){
+  if(child.isGroup){batchStaticParts(child,animated);continue;}
+  if(!child.isMesh||animated.has(child)||Array.isArray(child.material))continue;
+  const key=`${child.material.uuid}:${child.castShadow}:${child.receiveShadow}:${child.visible}:${child.renderOrder}`;
+  if(!buckets.has(key))buckets.set(key,[]);
+  buckets.get(key).push(child);
+ }
+ for(const parts of buckets.values()){
+  if(parts.length<2)continue;
+  const geometries=parts.map(part=>{part.updateMatrix();return part.geometry.clone().applyMatrix4(part.matrix);});
+  const geometry=mergeGeometries(geometries,false);
+  geometries.forEach(g=>g.dispose());
+  if(!geometry)continue;
+  geometry.computeBoundingBox();geometry.computeBoundingSphere();
+  const first=parts[0],merged=new T.Mesh(geometry,first.material);
+  merged.name='Static boat details';merged.castShadow=first.castShadow;merged.receiveShadow=first.receiveShadow;merged.visible=first.visible;merged.renderOrder=first.renderOrder;
+  group.add(merged);
+  for(const part of parts){group.remove(part);part.geometry.dispose();}
+ }
+}
 export function buildBoat(scene){
  const boat=new T.Group();scene.add(boat);const woodMap=texture('wood');woodMap.repeat.set(1,2);
  const wood=new T.MeshStandardMaterial({color:0x9d6434,map:woodMap,roughness:.72,bumpMap:woodMap,bumpScale:.045});
@@ -36,6 +62,7 @@ export function buildBoat(scene){
  const oars=[];for(const s of [-1,1]){const pivot=new T.Group();pivot.position.set(s*1.6,1.04,-4.15);boat.add(pivot);bar(V(0,0,0),V(s*2.9,-1.0,.1),.034,wood,pivot);const blade=mesh(new T.BoxGeometry(.75,.075,.3),wood,pivot,s*2.9,-1.0,.1);blade.rotation.z=-s*.2;pivot.visible=false;oars.push(pivot);}
  // A boatman anchors the scale of the craft.
  const person=new T.Group();person.position.set(.65,.79,5.1);boat.add(person);const skin=new T.MeshStandardMaterial({color:0x8f593c,roughness:.85});const shirt=new T.MeshStandardMaterial({color:0xd3c7ab,roughness:1});const trousers=new T.MeshStandardMaterial({color:0x3b5351,roughness:1});mesh(new T.CapsuleGeometry(.22,.42,5,8),shirt,person,0,1.05,0);mesh(new T.SphereGeometry(.18,10,8),skin,person,0,1.61,0);mesh(new T.CylinderGeometry(.33,.33,.045,16),cream,person,0,1.77,0);mesh(new T.SphereGeometry(.23,12,8,0,Math.PI*2,0,Math.PI/2),cream,person,0,1.77,0);for(const s of [-1,1]){bar(V(s*.1,.86,0),V(s*.13,.1,0),.085,trousers,person);bar(V(s*.22,1.3,0),V(s*.29,.84,-.18),.063,skin,person);}person.rotation.y=Math.PI;
+ batchStaticParts(boat,new Set([wheel]));
  return {boat,oars,person,wheel};
 }
 

@@ -7,7 +7,7 @@ export const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/42949672
 export const range=(a,b)=>a+(b-a)*random();
 const V=(x,y,z)=>new T.Vector3(x,y,z);
 const mat=(color,extra={})=>new T.MeshStandardMaterial({color,roughness:.88,...extra});
-const smallScreen=()=>typeof matchMedia==='function'&&matchMedia('(max-width: 760px)').matches;
+const smallScreen=()=>typeof matchMedia==='function'&&matchMedia('(max-width: 760px), (pointer: coarse)').matches;
 export function mesh(geo,material,parent,x=0,y=0,z=0){const m=new T.Mesh(geo,material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
 export function bar(a,b,r,material,parent,r2=r){const delta=b.clone().sub(a);const m=mesh(new T.CylinderGeometry(r2,r,delta.length(),7),material,parent);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(V(0,1,0),delta.normalize());return m;}
 
@@ -34,6 +34,49 @@ function leafTexture(){
  g.strokeStyle='#e1dc9b70';g.lineWidth=1.2;g.beginPath();g.moveTo(64,0);g.lineTo(64,128);g.stroke();g.lineWidth=.65;
  for(let i=0;i<9;i++){const y=14+i*12;for(const side of [-1,1]){g.beginPath();g.moveTo(64,y);g.quadraticCurveTo(64+side*24,y-10,64+side*57,y-20);g.stroke();}}
  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;return t;
+}
+
+// Dense distant crowns use opaque leaf-textured volumes. They stay solid from above,
+// avoid stacked transparent cards and cost a fraction of individual leaf geometry.
+function canopyTexture(){
+ const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');
+ g.fillStyle='#4c633d';g.fillRect(0,0,512,512);
+ for(let i=0;i<350;i++){
+  const x=range(0,512),y=range(0,512),r=range(8,36);g.fillStyle=i%3?'#243d2b48':'#a6b36a50';g.beginPath();g.ellipse(x,y,r,r*.7,range(0,6.28),0,6.28);g.fill();
+ }
+ for(let i=0;i<5400;i++){
+  const x=range(0,512),y=range(0,512),length=range(2.1,7),angle=range(0,6.28);
+  g.fillStyle=['#819957','#708c4c','#a2af72','#516e42','#405c37'][i%5];g.beginPath();g.ellipse(x,y,length*.34,length,angle,0,6.28);g.fill();
+  if(i%4===0){g.strokeStyle='#c4ca8838';g.lineWidth=.7;g.beginPath();g.moveTo(x-Math.sin(angle)*length*.7,y+Math.cos(angle)*length*.7);g.lineTo(x+Math.sin(angle)*length*.7,y-Math.cos(angle)*length*.7);g.stroke();}
+ }
+ const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=4;return t;
+}
+
+function crownVolumeGeometry(simple=false){
+ const geo=new T.SphereGeometry(1,simple?8:12,simple?6:8),pos=geo.attributes.position,colors=[];
+ for(let i=0;i<pos.count;i++){
+  const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
+  const irregular=1+.13*Math.sin(x*7.3+z*4.7+y*2.2)+.075*Math.sin(z*10.1-y*6.8)+.06*Math.cos(x*12.3+y*8.7);
+  pos.setXYZ(i,x*irregular,y*(.93+.07*irregular),z*irregular);
+  const shade=.56+(y+1)*.22;colors.push(shade,shade,shade*.95);
+ }
+ geo.setAttribute('color',new T.Float32BufferAttribute(colors,3));geo.computeVertexNormals();geo.computeBoundingSphere();return geo;
+}
+
+function clusteredCrownGeometry(compact=false){
+ const parts=[];
+ const lobes=compact?[[.70,.85,.68,-.27,0,-.17],[.66,.73,.75,.31,.04,.25]]:[[.66,.80,.64,-.34,-.03,-.27],[.66,.84,.66,.34,.12,-.07],[.71,.71,.63,-.07,-.06,.39]];
+ for(const [sx,sy,sz,x,y,z] of lobes){const part=crownVolumeGeometry(true);part.scale(sx,sy,sz);part.translate(x,y,z);parts.push(part);}
+ const pos=[],uv=[],colors=[],indices=[],q=new T.Quaternion();
+ // Small opaque leaf tips roughen the contour without alpha overdraw or flat walls.
+ for(let i=0;i<(compact?16:30);i++){
+  const a=range(0,6.28),y=range(-.35,.78),radius=Math.sqrt(1-y*y)*range(.85,1.02),origin=V(Math.cos(a)*radius,y,Math.sin(a)*radius),length=range(.12,.24);
+  q.setFromEuler(new T.Euler(range(.4,2.4),a,range(-.9,.9)));const offset=pos.length/3;
+  [V(0,-.5,0),V(-.24,0,0),V(0,0,.065),V(.24,0,0),V(0,.5,.015)].forEach((p,j)=>{p.multiplyScalar(length).applyQuaternion(q).add(origin);pos.push(p.x,p.y,p.z);uv.push(j===1?0:j===3?1:.5,j===0?0:j===4?1:.5);colors.push(.91,.94,.82);});
+  for(const face of [0,1,2,0,2,3,1,4,2,3,2,4])indices.push(offset+face);
+ }
+ const tips=new T.BufferGeometry();tips.setAttribute('position',new T.Float32BufferAttribute(pos,3));tips.setAttribute('uv',new T.Float32BufferAttribute(uv,2));tips.setAttribute('color',new T.Float32BufferAttribute(colors,3));tips.setIndex(indices);tips.computeVertexNormals();parts.push(tips);
+ const geo=mergeGeometries(parts);parts.forEach(p=>p.dispose());geo.computeBoundingSphere();return geo;
 }
 
 // Individual folded, pointed leaves form a volume, with no stacked foliage cards.
@@ -81,8 +124,8 @@ export function buildWorld(scene){
  const bark=mat(0xa9a18b,{map:barkMap,bumpMap:barkMap,bumpScale:.085});
  // Navigable edge stays identical to the collision channel. Wet bank colors reveal the tide line.
  for(const side of [-1,1]){
-  const pos=[],uv=[],idx=[],colors=[];const N=400,M=20,c=new T.Color();
-  for(let i=0;i<=N;i++){const z=240-i*3.5;for(let j=0;j<=M;j++){
+  const pos=[],uv=[],idx=[],colors=[];const N=520,M=20,c=new T.Color();
+  for(let i=0;i<=N;i++){const z=464-i*3.94;for(let j=0;j<=M;j++){
    const d=Math.pow(j/M,1.7)*135,edge=center(z)+side*width(z),x=edge+side*d;
    const y=j===0?-.7:Math.min(2.25,d*.16)-.25+Math.sin(z*.13+d*.15)*.23+range(-.10,.10);pos.push(x,y,z);uv.push(j/M,i/N);
    const wet=T.MathUtils.smoothstep(y,-.15,1.4);c.setRGB(.34+wet*.51,.34+wet*.44,.28+wet*.34);c.multiplyScalar(.94+Math.sin(z*.19+d*.72)*.06);colors.push(c.r,c.g,c.b);
@@ -100,8 +143,13 @@ export function buildWorld(scene){
    transformed.z+=sin(worldLeaf.z*.32+breezeTime*.67)*.055*leafFlex;`);
   shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`outgoingLight+=diffuseColor.rgb*vec3(.08,.105,.035)*(1.-abs(dot(normal,geometryViewDir)));\n#include <opaque_fragment>`);
  };
+ const canopyMap=canopyTexture(),canopyGeo=crownVolumeGeometry(),nearCanopyGeo=clusteredCrownGeometry(),understoryGeo=clusteredCrownGeometry(true);
+ const canopyMaterial=mat(0xffffff,{map:canopyMap,bumpMap:canopyMap,bumpScale:.16,vertexColors:true,roughness:.93});
+ const understoryMaterial=mat(0x8f9d80,{map:canopyMap,bumpMap:canopyMap,bumpScale:.12,vertexColors:true,roughness:1});
+ const farLeafGeo=crownVolumeGeometry(true);farLeafGeo.scale(2.12,1.08,2.12);
  const dummy=new T.Object3D(),color=new T.Color();const chunkCount=12,treesPerChunk=mobile?46:62;
- const sections=Array.from({length:chunkCount},(_,i)=>{const group=new T.Group();group.userData.centerZ=169-i*112;scene.add(group);return group;});
+ const sections=Array.from({length:chunkCount},(_,i)=>{const group=new T.Group();group.userData={centerZ:169-i*112,detailLeaves:[],detailRoots:[],far:false};scene.add(group);return group;});
+ const stats={detailedTrees:chunkCount*treesPerChunk,canopyVolumes:0,understoryVolumes:0,activeSections:chunkCount,lodSections:0};
  // Short forest sections can be culled independently in both the view and reflection.
  for(let chunk=0;chunk<chunkCount;chunk++)for(let variant=0;variant<2;variant++){
   const g=variants[variant],count=treesPerChunk/2,trunks=new T.InstancedMesh(g.trunk,bark,count),roots=new T.InstancedMesh(g.roots,bark,count),leaves=new T.InstancedMesh(leafGeo,leafMaterial,count*5);
@@ -110,7 +158,7 @@ export function buildWorld(scene){
    const sy=range(.72,1.62),sx=range(.9,1.5),yaw=range(0,6.28);dummy.position.set(x,offset<8?.05:1.1,z);dummy.scale.set(sx,sy,sx);dummy.rotation.set(range(-.04,.04),yaw,range(-.095,.095));dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);roots.setMatrixAt(i,dummy.matrix);
    for(let j=0;j<g.crowns.length;j++){const p=g.crowns[j].clone().applyMatrix4(dummy.matrix);const m=new T.Matrix4().compose(p,new T.Quaternion().setFromEuler(new T.Euler(range(-.2,.2),yaw+j,range(-.14,.14))),V(sx*range(.95,1.45),sy*range(1.1,1.65),sx*range(.95,1.45)));leaves.setMatrixAt(i*5+j,m);color.setHSL(range(.23,.29),range(.20,.35),range(.46,.67));leaves.setColorAt(i*5+j,color);}
   }
-  trunks.castShadow=roots.castShadow=leaves.castShadow=true;leaves.receiveShadow=trunks.receiveShadow=roots.receiveShadow=true;trunks.computeBoundingSphere();roots.computeBoundingSphere();leaves.computeBoundingSphere();sections[chunk].add(trunks,roots,leaves);
+  trunks.castShadow=roots.castShadow=leaves.castShadow=true;leaves.receiveShadow=trunks.receiveShadow=roots.receiveShadow=true;trunks.computeBoundingSphere();roots.computeBoundingSphere();leaves.computeBoundingSphere();sections[chunk].add(trunks,roots,leaves);sections[chunk].userData.detailLeaves.push(leaves);sections[chunk].userData.detailRoots.push(roots);
  }
  // Fine breathing roots and scattered fallen twigs break up the wet mud.
  const rootGeo=new T.CylinderGeometry(.012,.067,1,4),twigGeo=new T.CylinderGeometry(.024,.046,1,4);
@@ -122,10 +170,55 @@ export function buildWorld(scene){
   const shrubCount=mobile?30:46,bushes=new T.InstancedMesh(leafGeo,leafMaterial,shrubCount);
   for(let i=0;i<shrubCount;i++){const z=225-(chunk+random())*112,side=i%2?1:-1;dummy.position.set(center(z)+side*(width(z)+range(3,18)),range(1.5,2.8),z);dummy.scale.set(range(.75,1.2),range(.7,1.2),range(.75,1.2));dummy.rotation.set(0,range(0,6.28),range(-.2,.2));dummy.updateMatrix();bushes.setMatrixAt(i,dummy.matrix);color.setHSL(.25,.36,range(.45,.64));bushes.setColorAt(i,color);}bushes.castShadow=bushes.receiveShadow=true;bushes.computeBoundingSphere();sections[chunk].add(bushes);
  }
+ // Six overlapping depth bands turn scattered shoreline trees into continuous forest.
+ // Three-dimensional crowns and low undergrowth cover the floor in bow and overhead views.
+ const bands=[
+  {offset:14,spacing:7.8,radius:5.6,height:7.4},
+  {offset:25,spacing:9.2,radius:7.0,height:9.0},
+  {offset:40,spacing:10.5,radius:8.6,height:10.4},
+  {offset:59,spacing:12.0,radius:10.2,height:11.8},
+  {offset:83,spacing:13.0,radius:12.6,height:12.5},
+  {offset:112,spacing:14.0,radius:15.0,height:12.0}
+ ];
+ const perSide=bands.reduce((n,b)=>n+Math.ceil(112/b.spacing),0),nearPerSide=bands.slice(0,2).reduce((n,b)=>n+Math.ceil(112/b.spacing),0);
+ for(let chunk=-2;chunk<chunkCount+3;chunk++){
+  let section=chunk>=0&&chunk<chunkCount?sections[chunk]:null;
+  if(!section){section=new T.Group();section.userData={centerZ:169-chunk*112,detailLeaves:[],detailRoots:[],far:false};scene.add(section);sections.push(section);}
+  const crowns=new T.InstancedMesh(canopyGeo,canopyMaterial,(perSide-nearPerSide)*2),nearCrowns=new T.InstancedMesh(nearCanopyGeo,canopyMaterial,nearPerSide*2);let index=0,nearIndex=0;
+  for(const side of [-1,1])for(let band=0;band<bands.length;band++){
+   const b=bands[band],count=Math.ceil(112/b.spacing);
+   for(let i=0;i<count;i++){
+    const z=225-(chunk+(i+range(.08,.92))/count)*112,offset=b.offset+range(-2.3,2.3);
+    const radius=b.radius*range(.85,1.15),vertical=range(3.5,5.4)+(band*.22),height=b.height+range(-1.8,2.3);
+    dummy.position.set(center(z)+side*(width(z)+offset),height,z);dummy.rotation.set(range(-.16,.16),range(0,6.28),range(-.16,.16));dummy.scale.set(radius,vertical,radius*range(.86,1.19));dummy.updateMatrix();const crownMesh=band<2?nearCrowns:crowns,crownIndex=band<2?nearIndex++:index++;crownMesh.setMatrixAt(crownIndex,dummy.matrix);
+    color.setHSL(range(.22,.29),range(.08,.19),range(.72,.95));crownMesh.setColorAt(crownIndex,color);
+   }
+  }
+  crowns.receiveShadow=nearCrowns.receiveShadow=true;crowns.computeBoundingSphere();nearCrowns.computeBoundingSphere();section.add(crowns,nearCrowns);stats.canopyVolumes+=index+nearIndex;
+  const underCount=mobile?66:84,understory=new T.InstancedMesh(understoryGeo,understoryMaterial,underCount);
+  for(let i=0;i<underCount;i++){
+   const side=i%2?1:-1,row=Math.floor(i/2)%3,along=Math.floor(i/6),rowCount=Math.ceil(underCount/6),z=225-(chunk+(along+range(.03,.97))/rowCount)*112;
+   const offset=12+row*12+range(-1.4,1.4);dummy.position.set(center(z)+side*(width(z)+offset),range(2.2,3.6),z);dummy.rotation.set(range(-.08,.08),range(0,6.28),range(-.08,.08));dummy.scale.set(range(5.4,8.2),range(1.8,3.0),range(5.3,8.8));dummy.updateMatrix();understory.setMatrixAt(i,dummy.matrix);color.setHSL(range(.24,.29),range(.10,.21),range(.58,.82));understory.setColorAt(i,color);
+  }
+  understory.receiveShadow=true;understory.computeBoundingSphere();section.add(understory);stats.understoryVolumes+=underCount;
+ }
  const dock=new T.Group(),wood=mat(0x9b8060,{map:texture('wood')});const dz=26,dx=center(dz)+width(dz)-3;dock.position.set(dx,.5,dz);
  for(let i=0;i<15;i++)mesh(new T.BoxGeometry(8,.17,.45),wood,dock,2,.4,i*.51-3.6);
  for(const x of [-1,5])for(const z of [-3.7,3.7])bar(V(x,-1,z),V(x,1.3,z),.16,bark,dock);scene.add(dock);
- return {update(t,position){breeze.value=t;if(position)for(const section of sections)section.visible=Math.abs(section.userData.centerZ-position.z)<(mobile?410:510);}};
+ return {
+  update(t,position){
+   breeze.value=t;if(!position)return;stats.activeSections=0;stats.lodSections=0;
+   for(const section of sections){
+    const distance=Math.abs(section.userData.centerZ-position.z);section.visible=distance<(mobile?410:510);if(!section.visible)continue;stats.activeSections++;
+    // Hysteresis prevents repeated swaps at a section boundary. The first bank trees
+    // retain individual leaves and roots; distant crowns become low-cost volumes.
+    const threshold=mobile?180:235,far=distance>(threshold+(section.userData.far?-18:18));
+    if(far!==section.userData.far){section.userData.far=far;for(const leaves of section.userData.detailLeaves){leaves.geometry=far?farLeafGeo:leafGeo;leaves.material=far?canopyMaterial:leafMaterial;leaves.castShadow=!far;}for(const roots of section.userData.detailRoots)roots.visible=!far;}
+    if(far)stats.lodSections++;
+   }
+  },
+  getStats(){return {...stats};}
+ };
 }
 
 export function buildSky(scene){
