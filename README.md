@@ -20,19 +20,24 @@ Open http://127.0.0.1:4173/. The server binds only to your computer. The complet
 - **Q / E**: left / right oar. **Space** rows both oars, or brakes in motor mode.
 - **C**: trailing, bow, and overhead cameras.
 - **H**: hide or restore the interface.
-- Drag the scene to look around; scroll to zoom.
-- **Let it drift** follows the designed creek. Steering or moving manually cancels it.
-- The time button cycles golden hour, morning mist, and blue hour.
-- Nature sounds are synthesized locally and require a click to enable.
-- Touch devices get on-screen steering and rowing controls.
+- Drag the scene to look around; scroll or pinch to zoom.
+- The play button starts a gentle cruise along the designed creek. Manual navigation cancels it.
+- **More** contains camera, lighting, hide interface, reset and help. Lighting cycles golden hour, morning mist and blue hour.
+- The sound button enables two real, licensed kingfisher recordings with spatial positioning, plus synthesized wind and water. Calls are intermittent. Audio starts only after a click.
+- Touch devices get on-screen steering, throttle and rowing controls, with a compact retained minimap.
+- **Field guide** opens facts about the wetland, crocodiles and five bird species, with research links, audio previews and recording attribution. The journey pauses while the guide is open.
 
 ## Water and motion
 
-The water renders an actual mirrored view of the scene into a 1024px reflection target. It combines four scrolling samples of the Three.js water normal texture with three travelling surface waves, analytic wave derivatives, Fresnel reflection, and sunlight. Boat speed creates a V wake and stern turbulence; oar strokes and swimming crocodiles emit expanding, decaying ripples.
+The water renders an actual mirrored view of the scene into a 1024px reflection target (512px on phones). It combines four scales of scrolling surface detail with three travelling waves, analytic wave derivatives, Fresnel reflection, and sunlight. The player and passing boats create wakes; oar strokes and swimming crocodiles emit expanding, decaying ripples.
 
 Boat handling uses fixed-step integration, forward and lateral drag, speed-dependent rudder authority, independent rowing impulses, and damped buoyancy. Collision samples protect the bow, centre, and stern against both banks. This is a real-time visual and handling approximation, not a computational fluid dynamics model. Refraction, full fluid displacement, and complex hydrodynamic interactions are not simulated.
 
-The environment includes instanced mangroves, prop roots, breathing roots, moving foliage, birds, a wooden landing, five basking crocodiles, and three swimming crocodiles with articulated tails. Crocodiles are ambient wildlife; there is no combat or animal interaction.
+The environment includes mangroves with individual folded leaves, irregular branches, tapered prop roots, breathing roots, moving foliage, textured wet banks, a wooden landing, five basking crocodiles, and three swimming crocodiles with articulated tails. Crocodiles are ambient wildlife; there is no combat or animal interaction.
+
+Twenty-two modelled birds represent white-throated, common and black-capped kingfishers, little egrets and Brahminy kites. All five species are documented in Bhitarkanika. Calls are assigned only to the two species with licensed recordings. The recordings were not made in the park; provenance is disclosed in the field guide and [research notes](birds-research.md).
+
+Three passenger boats and an occasional police patrol travel the creek, slow down and steer around nearby vessels. The patrol and routes are fictional ambient traffic. Water shows each vessel's wake, and the minimap marks them. Mobile uses less foliage and smaller reflections; distant forest groups are culled and resolution adapts on slower devices.
 
 The route is approximately 1.2 km and is designed for exploration; it is not a reconstruction of surveyed geography. Desktop graphics hardware is recommended. A WebGL 2 browser and hardware acceleration are required.
 
@@ -43,7 +48,8 @@ The route is approximately 1.2 km and is designed for exploration; it is not a r
 - [Meng To — Sakura River Valley](https://valley.mengto.here.now/): inspiration for the trailing camera, contemplative atmosphere, and reflective water. No source or assets copied.
 - [Three.js](https://threejs.org/): r183.2, MIT licence in `dist/vendor/LICENSE-three.txt`. Water normal map from [the official Three.js examples](https://threejs.org/examples/textures/waternormals.jpg).
 - Boat, environment, wildlife, and canvas material textures are generated in code. Typefaces: DM Sans and Libre Caslon Display, loaded through Google Fonts with local system-font fallbacks.
+- Bird recordings: Shajiarikkad's white-throated kingfisher (CC BY-SA 3.0) and Marie-Lan Taÿ Pamart's common kingfisher (CC BY-SA 4.0). Full links, locations, playback adjustments and licenses are in `dist/assets/audio-credits.json` and the field guide. Audio files retain their individual Creative Commons licenses.
 
 ## Verification
 
-`npm test` checks acceleration, coasting, braking, reverse, rudder response, rowing cooldown/torque, full-hull bank collisions, integration stability, and reset. `npm run check` checks application syntax. Browser verification covers rendering, cruising, rowing, camera changes, atmosphere, sounds, reset, and responsive layouts.
+`npm test` runs ten tests covering player physics, rowing, full-hull bank collisions, traffic stability, avoidance and frame-rate independence. `npm run check` checks application syntax. Browser verification covers rendering, cruising, rowing, camera changes, atmosphere, decoded bird recordings, the guide, reset and responsive layouts.

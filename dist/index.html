@@ -2,39 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#163c38">
-  <title>Into Bhitarkanika — A Mangrove Journey</title>
-  <meta name="description" content="Take the slow way. A playable riverboat journey through palm-lined Bhitarkanika mangrove creeks, with reflective water, rowing, and a little room to wander.">
+  <meta name="theme-color" content="#17382f"><title>Into Bhitarkanika</title>
+  <meta name="description" content="Explore Bhitarkanika's mangrove creeks by boat. Reflective tidal water, native birds and their calls, crocodiles, and a quiet field guide to Odisha's wildlife.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23163c38'/%3E%3Cpath d='M12 36h40l-7 10H21zM21 33v-5a11 11 0 0122 0v5M14 52q9-5 18 0t18 0' fill='none' stroke='%23e9d4a0' stroke-width='3'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./style.css">
-  <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/"}}</script>
+  <link rel="stylesheet" href="./style.css"><script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/"}}</script>
 </head>
 <body>
   <main id="experience" aria-label="Interactive Bhitarkanika mangrove creeks">
-    <canvas id="scene" tabindex="0" aria-label="3D riverboat. W and S move, A and D steer. R switches rowing mode. Space rows or slows the boat."></canvas>
-    <div class="vignette" aria-hidden="true"></div>
-    <header class="topbar ui">
-      <div class="identity"><span class="eyebrow">THE SLOW TRAVEL CLUB <span class="line"></span> 01</span><h1>Into <em>Bhitarkanika.</em></h1><div class="location"><span class="pin">◉</span> ODISHA, INDIA <span class="sep">/</span> 20.72° N · 86.82° E</div></div>
-      <div class="top-actions"><button id="time-button" class="time-button" title="Change time of day"><span id="sun-icon">☀</span><span><b id="time-label">Golden hour</b><small id="clock-label">17:24 · A little before sunset</small></span><span class="chevron">⌄</span></button><button id="help-button" class="icon-button" aria-label="Open controls and about">?</button></div>
-    </header>
-    <div id="loading" class="loading"><div class="loader-mark">≈</div><p>Finding a quieter place…</p><span>Following the tide</span></div>
-    <div id="error" class="error" hidden><h2>The water couldn’t load.</h2><p id="error-message">Please enable hardware acceleration and use a browser with WebGL 2.</p><button onclick="location.reload()">Try again</button></div>
-    <aside class="journey ui"><span class="eyebrow">YOU ARE HERE</span><h2 id="place-name">The mangrove creek</h2><p id="place-description">No hurry. Just follow the water.</p><div class="journey-rule"></div><div class="journey-stats"><span><b id="distance">0</b> <small>m travelled</small></span><span><b id="speed">0.0</b> <small>knots</small></span></div></aside>
+    <canvas id="scene" tabindex="0" aria-label="3D riverboat. W and S move, A and D steer. R switches rowing mode. Space rows or slows the boat."></canvas><div class="vignette" aria-hidden="true"></div>
+    <header class="topbar ui"><div class="identity"><h1>Into <em>Bhitarkanika</em></h1><p>ODISHA, INDIA</p></div><button id="guide-button" class="guide-button" aria-label="Open wildlife field guide" aria-controls="field-guide" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1zM12 6v14"/></svg><span>Field guide</span></button></header>
+    <div id="loading" class="loading"><div class="loader-mark">≈</div><p>Into the mangroves</p><span>Following the tide</span></div>
+    <div id="error" class="error" hidden><h2>The creek couldn’t load.</h2><p id="error-message">Please enable hardware acceleration and use a browser with WebGL 2.</p><button id="reload-button">Try again</button></div>
+    <aside class="journey ui" aria-label="Journey statistics"><div><span class="stat-value" id="distance">0</span><span class="stat-unit">m travelled</span></div><div><span class="stat-value" id="speed">0.0</span><span class="stat-unit">knots</span></div></aside>
     <aside class="map-panel ui" aria-label="Canal navigation map"><div class="map-heading"><span>THE MANGROVES</span><span>N ↑</span></div><canvas id="minimap" width="240" height="170" aria-label="Your boat position along the canal"></canvas><div class="map-footer"><span id="heading-label">NORTHBOUND</span><span>EXPLORE FREELY</span></div></aside>
     <div id="notice" role="status" class="notice"></div>
     <footer class="bottom ui">
-      <div class="control-hint" id="control-hint"><span><kbd>W</kbd><kbd>S</kbd> Move</span><span><kbd>A</kbd><kbd>D</kbd> Steer</span><span class="desktop-only">Drag to look · Scroll to zoom</span></div>
-      <div class="dock">
-        <div class="modes" role="group" aria-label="Boat propulsion"><button id="motor-button" class="active" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M5 15h14l-3 5H8zM7 15V8h10v7M10 8V4h4v4M3 22q3-2 6 0t6 0t6 0"/></svg>Motor</button><button id="row-button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m5 3 12 14m-1-2 5 5-3 2-4-5M19 3 7 17m1-2-5 5 3 2 4-5"/></svg>Row</button></div>
-        <span class="dock-divider"></span><button id="cruise-button" class="dock-action" aria-pressed="false" title="Cruise along the canal"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Let it drift</span></button>
-        <span class="dock-divider"></span><button id="camera-button" class="dock-icon" aria-label="Change camera view" title="Change camera (C)"><svg viewBox="0 0 24 24"><path d="M3 7h4l2-3h6l2 3h4v14H3z"/><circle cx="12" cy="13" r="4"/></svg></button><button id="sound-button" class="dock-icon" aria-label="Enable nature sounds" aria-pressed="false" title="Nature sounds"><svg viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zM16 9l5 6m0-6-5 6"/></svg></button><button id="hide-button" class="dock-icon" aria-label="Hide interface" title="Hide interface (H)"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button>
-      </div><div class="footer-caption"><span>A SMALL ESCAPE, IN YOUR BROWSER.</span><button id="reset-button">Start again ↺</button></div>
+      <div class="more-panel" id="more-panel" aria-label="More controls" hidden>
+        <button id="camera-button" class="more-item"><svg viewBox="0 0 24 24"><path d="M3 7h4l2-3h6l2 3h4v14H3z"/><circle cx="12" cy="13" r="4"/></svg><span>Camera <small id="camera-label">Follow</small></span><kbd>C</kbd></button>
+        <button id="time-button" class="more-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg><span>Light <small id="time-label">Golden hour</small></span><span class="cycle-icon">↻</span></button>
+        <button id="hide-button" class="more-item"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span>Hide interface</span><kbd>H</kbd></button>
+        <button id="reset-button" class="more-item"><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg><span>Start again</span></button>
+        <button id="help-button" class="more-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 8a3 3 0 0 1 6 0c0 2-3 2-3 5m0 3v.2"/></svg><span>Controls</span><kbd>?</kbd></button>
+      </div>
+      <nav class="dock" aria-label="Boat controls">
+        <button id="mode-button" class="mode-button" title="Switch motor / rowing (R)" aria-label="Motor mode. Switch to rowing"><svg id="mode-icon" viewBox="0 0 24 24"><path d="M5 14h14l-3 5H8zM7 14V8h10v6M10 8V4h4v4M3 22q3-2 6 0t6 0t6 0"/></svg><span id="mode-label">Motor</span><span class="mode-chevron">⌄</span></button><span class="dock-divider"></span>
+        <button id="cruise-button" class="dock-icon" aria-label="Start gentle cruise" aria-pressed="false" title="Gentle cruise"><svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></svg></button>
+        <button id="sound-button" class="dock-icon" aria-label="Enable nature sounds" aria-pressed="false" title="Nature sounds"><svg viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zM16 9l5 6m0-6-5 6"/></svg></button>
+        <button id="more-button" class="dock-icon" aria-label="More controls" aria-controls="more-panel" aria-expanded="false" title="More controls"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
+      </nav>
     </footer>
-    <div class="touch-controls ui"><button data-key="KeyA" aria-label="Steer left">←</button><button data-key="KeyW" aria-label="Move forward">↑</button><button data-key="KeyS" aria-label="Reverse or slow">↓</button><button data-key="KeyD" aria-label="Steer right">→</button><button id="touch-row">Row</button></div>
+    <div class="touch-controls ui" aria-label="Touch navigation"><div class="touch-steer"><button data-key="KeyA" aria-label="Steer left">←</button><button data-key="KeyD" aria-label="Steer right">→</button></div><div class="touch-throttle"><button data-key="KeyS" aria-label="Reverse or slow">↓</button><button data-key="KeyW" id="touch-forward" aria-label="Move forward">↑</button><button id="touch-row" aria-label="Row both oars" hidden><svg viewBox="0 0 24 24"><path d="m5 3 12 14m-1-2 5 5-3 2-4-5M19 3 7 17m1-2-5 5 3 2 4-5"/></svg></button></div></div>
     <button id="show-button" class="show-button" hidden>Show controls <kbd>H</kbd></button>
-    <dialog id="help-dialog"><button id="close-help" class="close-help" aria-label="Close controls">×</button><span class="eyebrow">WELCOME ABOARD</span><h2>Take the slow way.</h2><p>Follow the canal in your own covered riverboat. There’s no destination to reach and no clock to beat.</p><div class="help-grid"><span><kbd>W</kbd> / <kbd>↑</kbd></span><span>Accelerate / row both oars</span><span><kbd>S</kbd> / <kbd>↓</kbd></span><span>Reverse / slow down</span><span><kbd>A</kbd> <kbd>D</kbd></span><span>Steer left / right</span><span><kbd>Q</kbd> <kbd>E</kbd></span><span>Row the left / right oar</span><span><kbd>Space</kbd></span><span>Brake in motor mode; row in rowing mode</span><span><kbd>R</kbd> <kbd>C</kbd> <kbd>H</kbd></span><span>Rowing mode / camera / hide controls</span><span>Drag / scroll</span><span>Look around / adjust camera distance</span></div><p class="small">An artistic interpretation of Bhitarkanika, informed by boat and mangrove photos on Google Maps. The canal is a designed landscape, not a geographic reconstruction.</p><div class="source-links"><a href="https://www.google.com/maps/search/Bhitarkanika+National+Park+boating/" target="_blank" rel="noreferrer">Bhitarkanika reference ↗</a><a href="https://valley.mengto.here.now/" target="_blank" rel="noreferrer">Inspired by Meng To ↗</a></div></dialog>
-  </main>
-  <script type="module" src="./main.js"></script>
+    <dialog id="help-dialog" aria-labelledby="help-title"><button id="close-help" class="close-button" aria-label="Close controls">×</button><span class="eyebrow">AT THE HELM</span><h2 id="help-title">Find your own pace.</h2><div class="help-grid"><span><kbd>W</kbd> <kbd>S</kbd></span><span>Move / reverse</span><span><kbd>A</kbd> <kbd>D</kbd></span><span>Steer left / right</span><span><kbd>Q</kbd> <kbd>E</kbd></span><span>Left / right oar</span><span><kbd>Space</kbd></span><span>Brake, or row both oars</span><span><kbd>R</kbd></span><span>Switch motor / rowing</span><span><kbd>C</kbd> <kbd>H</kbd></span><span>Camera / hide interface</span><span>Drag / scroll</span><span>Look around / zoom</span></div><p class="small">On a phone, use the arrows to steer and move. Switch to Row for the oar button. Pinch to zoom.</p><p class="small">A designed interpretation of Bhitarkanika, inspired by <a href="https://valley.mengto.here.now/" target="_blank" rel="noreferrer">Meng To’s river valley</a>. The wildlife is at home here; the route and patrol traffic are fictional.</p></dialog>
+    <dialog id="field-guide" class="field-guide" aria-labelledby="guide-title"><div class="guide-heading"><div><span class="eyebrow">ODISHA · FIELD NOTES</span><h2 id="guide-title">Life along the creek</h2></div><button id="close-guide" class="close-button" aria-label="Close field guide">×</button></div><div id="guide-content"></div></dialog>
+  </main><script type="module" src="./main.js"></script>
 </body></html>
-
-
