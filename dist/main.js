@@ -28,7 +28,7 @@ function stroke(side){if(state.mode!=='row'||!physics.row(side,time))return;stro
 function cycleCamera(){state.camera=(state.camera+1)%3;orbitYaw=state.camera===2?.55:.42;orbitPitch=.29;notice(['Following the boat','On the bow','Above the mangroves'][state.camera]);}
 function hideUI(){state.hidden=!state.hidden;document.body.classList.toggle('hidden-ui',state.hidden);$('show-button').hidden=!state.hidden;}
 const times=[{name:'Golden hour',clock:'17:24 · A little before sunset',top:'#7fa5ac',horizon:'#f0d4a5',fog:'#c4c4a3',sun:'#ffd394',power:3.3,exposure:1.25,dir:[-.45,.27,-.85]},{name:'Morning mist',clock:'06:18 · The forest wakes',top:'#819ea6',horizon:'#c7d5c7',fog:'#adbeb6',sun:'#e1e8d3',power:2.1,exposure:1.2,dir:[-.5,.2,-.7]},{name:'Blue hour',clock:'18:12 · The last light',top:'#344f72',horizon:'#c39e91',fog:'#63777c',sun:'#cfb4ab',power:1.3,exposure:1.1,dir:[-.5,.1,-.7]}];
-function changeTime(){state.timeIndex=(state.timeIndex+1)%times.length;const p=times[state.timeIndex];$('time-label').textContent=p.name;$('clock-label').textContent=p.clock;sky.uniforms.top.value.set(p.top);sky.uniforms.horizon.value.set(p.horizon);sky.uniforms.sun.value.set(...p.dir).normalize();scene.fog.color.set(p.fog);scene.fog.density=state.timeIndex===1?.007:.0045;sun.color.set(p.sun);sun.intensity=p.power;hemi.intensity=state.timeIndex===2?1.1:2.1;water.uniforms.sunColor.value.set(p.sun);water.uniforms.sunDirection.value.copy(sky.uniforms.sun.value);renderer.toneMappingExposure=p.exposure;document.querySelector('.topbar').style.color=state.timeIndex===2?'#eee5cd':'';notice(p.name);}
+function changeTime(){state.timeIndex=(state.timeIndex+1)%times.length;const p=times[state.timeIndex];$('time-label').textContent=p.name;$('clock-label').textContent=p.clock;sky.uniforms.top.value.set(p.top);sky.uniforms.horizon.value.set(p.horizon);sky.uniforms.sun.value.set(...p.dir).normalize();scene.fog.color.set(p.fog);scene.fog.density=state.timeIndex===1?.007:.0045;sun.color.set(p.sun);sun.intensity=p.power;hemi.intensity=state.timeIndex===2?1.1:2.1;water.uniforms.sunColor.value.set(p.sun);water.uniforms.sunDirection.value.copy(sky.uniforms.sun.value);renderer.toneMappingExposure=p.exposure;document.querySelector('.topbar').style.color='';notice(p.name);}
 function reset(){physics.reset();leftStroke=rightStroke=-10;boatY=verticalVelocity=0;state.cruise=false;state.camera=0;orbitYaw=.42;orbitPitch=.29;distance=26;water.uniforms.ripples.value.forEach(r=>r.z=-100);updateUI();notice('Back at the landing. The creek is yours.');}
 // WebAudio ambience is synthesized locally and starts only after a user gesture.
 let audio=null;
@@ -63,6 +63,7 @@ function animate(){
  if(time>noticeUntil)$('notice').classList.remove('visible');if(frame%4===0)renderer.shadowMap.needsUpdate=true;renderer.render(scene,camera);if(frame===2){$('loading').classList.add('done');canvas.dataset.ready='true';}frame++;
 }
 updateUI();animate();
+
 
 
 
