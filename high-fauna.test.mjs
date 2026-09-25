@@ -11,7 +11,7 @@ const utilsURL=moduleURL(resolveThree(await readFile(new URL('./dist/vendor/Buff
 const faunaURL=moduleURL(resolveThree(await readFile(new URL('./dist/high-fauna.js',import.meta.url),'utf8')).replace("'./vendor/BufferGeometryUtils.js'",`'${utilsURL}'`));
 const visualURL=moduleURL(resolveThree(await readFile(new URL('./dist/rowing-visual.js',import.meta.url),'utf8')).replace("'./rowing-motion.js'",`'${new URL('./dist/rowing-motion.js',import.meta.url).href}'`));
 const T=await import(threeURL);
-const {createRowingRig,poseHuman,fitHumanToDeck,posedContact,createFaunaDetailController}=await import(faunaURL);
+const {createRowingRig,poseHuman,fitHumanToDeck,posedContact,createFaunaDetailController,refineClothingGeometry,alignHighWildlife}=await import(faunaURL);
 const {createRowingVisual}=await import(visualURL);
 const {RowingCycle}=await import('./dist/rowing.js');
 const {createTraffic}=await import('./dist/traffic.js');
@@ -41,7 +41,7 @@ test('High boatman grips real oars through paired and single strokes on a rollin
  const {craft,mesh,holder,rig,rowing}=boatman();
  const initialFeet=posedContact(mesh,spec.contacts.feet).min+holder.position.y;
  assert.ok(Math.abs(initialFeet+.06)<1e-6);
- let checks=0,maxHandError=0,maxFootError=0,maxContactStep=0,previous=null,previousBlend=0;
+ let checks=0,maxHandError=0,maxFootError=0,maxContactStep=0,maxForearmTurn=0,previous=null,previousBlend=0;
  const phases=new Set();
  // Leave time for the gentle equip motion, then measure over 500 held frames.
  for(let i=0;i<780;i++){
@@ -51,6 +51,7 @@ test('High boatman grips real oars through paired and single strokes on a rollin
   craft.boat.rotation.set(Math.sin(time*.8)*.012,time*.22,Math.cos(time*.6)*.018);
   craft.rowingVisual.update({time,dt:1/60,mode:i<690?'row':'motor',rowing,high:true,waterHeight:(x,z)=>Math.sin(x*.12+time)*.013+Math.cos(z*.11-time)*.01});
   rig.update(time);const hands=rig.getContacts(),pose=craft.rowingVisual.pose;
+  for(const side of ['L','R'])maxForearmTurn=Math.max(maxForearmTurn,mesh.getObjectByName(`lowerarm02.${side}`).quaternion.angleTo(new T.Quaternion()));
   if(pose.blend>.9999){
    for(let side=0;side<2;side++)maxHandError=Math.max(maxHandError,hands[side].distanceTo(pose.hands[side]));
    if(previousBlend>.9999)maxContactStep=Math.max(maxContactStep,hands[0].distanceTo(previous[0]),hands[1].distanceTo(previous[1]));
@@ -72,6 +73,7 @@ test('High boatman grips real oars through paired and single strokes on a rollin
  assert.ok(maxHandError<.002,`grip error ${maxHandError} m`);
  assert.ok(maxFootError<.0001,`sole movement ${maxFootError} m`);
  assert.ok(maxContactStep<.04,`oar restart jump ${maxContactStep} m`);
+ assert.ok(maxForearmTurn>.03&&maxForearmTurn<1.1,'the forearm shares a bounded portion of the real wrist pronation');
 });
 
 test('resuming the detailed rig consumes the live shared stroke without pose accumulation',()=>{
@@ -86,6 +88,50 @@ test('resuming the detailed rig consumes the live shared stroke without pose acc
  for(let i=0;i<20;i++)rig.update(249/60);
  mesh.skeleton.bones.forEach((bone,i)=>assert.ok(bone.quaternion.angleTo(saved[i])<1e-6));
  rig.getContacts().forEach((p,i)=>assert.ok(p.distanceTo(contacts[i])<1e-9));
+});
+
+test('rowing transfers weight through hips while both ankle contacts stay fixed in three dimensions',t=>{
+ const {craft,mesh,named,rig,rowing}=boatman(),rootStart=named.root.position.clone();
+ const feet=['L','R'].map(side=>mesh.worldToLocal(named[`foot.${side}`].getWorldPosition(new T.Vector3())));
+ let movement=0,footError=0,gripError=0;
+ for(let i=0;i<420;i++){
+  const time=i/60;rowing.step(1/60,i<210?{rowBoth:true}:{rowLeft:true});
+  craft.rowingVisual.update({time,dt:1/60,mode:'row',rowing,high:true});rig.update(time);
+  movement=Math.max(movement,named.root.position.distanceTo(rootStart));
+  for(const [index,side] of ['L','R'].entries())footError=Math.max(footError,mesh.worldToLocal(named[`foot.${side}`].getWorldPosition(new T.Vector3())).distanceTo(feet[index]));
+  if(craft.rowingVisual.pose.blend>.9999)gripError=Math.max(gripError,craft.rowingVisual.pose.highHandError);
+ }
+ t.diagnostic(`Pelvis travel ${(movement*1000).toFixed(2)} mm; ankle drift ${(footError*1000).toFixed(4)} mm; hand error ${(gripError*1000).toFixed(4)} mm.`);
+ assert.ok(movement>.002);assert.ok(footError<.0001);assert.ok(gripError<.002);
+});
+
+test('garment ease preserves original topology, authored weights, and sole contacts',()=>{
+ const {mesh}=boatman(),geometry=mesh.geometry.clone(),before=geometry.attributes.position.array.slice(),weights=geometry.attributes.skinWeight.array.slice();
+ refineClothingGeometry(geometry,spec.groups);
+ let maxDistance=0,changed=0;
+ for(let i=0;i<geometry.attributes.position.count;i++){
+  const distance=Math.hypot(...[0,1,2].map(axis=>geometry.attributes.position.array[i*3+axis]-before[i*3+axis]));
+  maxDistance=Math.max(maxDistance,distance);if(distance>1e-7)changed++;
+ }
+ assert.ok(changed>2000&&maxDistance>.012&&maxDistance<.022);assert.deepEqual(geometry.attributes.skinWeight.array,weights);
+ assert.equal(geometry.index.count,mesh.geometry.index.count);
+ for(const i of spec.contacts.feet)for(let axis=0;axis<3;axis++)assert.equal(geometry.attributes.position.array[i*3+axis],before[i*3+axis]);
+ const skin=spec.groups.find(group=>group.materialIndex===0);
+ for(let n=skin.start;n<skin.start+skin.count;n++){const i=geometry.index.getX(n);for(let axis=0;axis<3;axis++)assert.equal(geometry.attributes.position.array[i*3+axis],before[i*3+axis]);}
+ const once=geometry.attributes.position.array.slice();refineClothingGeometry(geometry,spec.groups);assert.deepEqual(geometry.attributes.position.array,once);
+});
+
+test('High wildlife detail meets existing perches and the shared water field without changing source routes',()=>{
+ const parent=new T.Group(),detail=new T.Group();parent.add(detail);parent.position.set(12,3,-44);parent.rotation.y=Math.PI/2+.08;parent.scale.setScalar(1.18);
+ const bird={mesh:parent,home:new T.Vector3(12,3,-44),side:1,flight:false,species:'white-throated-kingfisher'},saved=parent.position.clone();
+ alignHighWildlife({kind:'bird',source:bird,detail},4,{});
+ const foot=detail.localToWorld(new T.Vector3(0,.006,-.035)),dx=-.7,dz=-.2,u=T.MathUtils.clamp(((foot.x-12)*dx+(foot.z+44)*dz)/(dx*dx+dz*dz),0,1);
+ assert.ok(Math.abs(foot.y-(3-.04+u*.06+.032))<1e-6);assert.ok(parent.position.equals(saved));
+ parent.position.set(5,-.286,-30);parent.rotation.set(0,.2,0);parent.scale.setScalar(1.08);
+ const source={swims:true,group:parent},before=parent.matrix.clone(),climate={waterHeight:(x,z,t)=>.014*Math.sin(x*.2+t)+.009*Math.cos(z*.3-t)};
+ alignHighWildlife({kind:'croc',source,detail},5,climate);const height=climate.waterHeight(5,-30,5);
+ assert.ok(Math.abs(parent.position.y+detail.position.y*1.08-(height-.27))<1e-9);assert.ok(Math.abs(detail.rotation.x)<.018);
+ assert.equal(parent.position.y,-.286);assert.equal(source.swims,true);assert.ok(parent.matrix.equals(before));
 });
 
 test('both physical blades clear the moving water throughout feathered recovery',()=>{

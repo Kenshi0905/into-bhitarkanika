@@ -221,6 +221,29 @@ function prepareClothingAlbedo(map){
  context.putImageData(pixels,0,0);map.image=canvas;map.needsUpdate=true;
 }
 
+export function refineClothingGeometry(geometry,groups){
+ // Keep the authored outfit, UVs and skin weights. Broad sleeve, elbow and knee
+ // folds read in gameplay, with volume tapering away at cuffs and the hem.
+ if(geometry.userData.clothingVolume)return;
+ geometry.computeVertexNormals();
+ const position=geometry.attributes.position,normal=geometry.attributes.normal,index=geometry.index;
+ const owned=new Map();
+ for(const group of groups)for(let n=group.start;n<group.start+group.count;n++){
+  const i=index?index.getX(n):n;
+  if(!owned.has(i)||group.materialIndex===0)owned.set(i,group.materialIndex);
+ }
+ for(const [i,material] of owned){
+  if(material!==1&&material!==2)continue;
+  const x=position.getX(i),y=position.getY(i),z=position.getZ(i);
+  const seam=T.MathUtils.smoothstep(y,material===1?1.01:.16,material===1?1.11:.24);
+  const jointFold=material===1?Math.exp(-(((y-1.30)/.14)**2)):Math.exp(-(((y-.53)/.17)**2));
+  const fold=material===1?Math.sin(y*28+x*7+z*9)*(.0025+jointFold*.004):Math.sin(y*25+Math.abs(x)*13)*(.0018+jointFold*.003);
+  const ease=(material===1?.011:.006)+jointFold*(material===1?.004:.002)+fold;
+  position.setXYZ(i,x+normal.getX(i)*ease*seam,y+normal.getY(i)*ease*seam*.35,z+normal.getZ(i)*ease*seam);
+ }
+ position.needsUpdate=true;geometry.computeVertexNormals();geometry.computeBoundingSphere();geometry.userData.clothingVolume=true;
+}
+
 function addFootContacts(mesh,holder,contacts,deckY){
  const canvas=document.createElement('canvas');canvas.width=canvas.height=64;const context=canvas.getContext('2d');
  const gradient=context.createRadialGradient(32,32,5,32,32,32);gradient.addColorStop(0,'rgba(255,255,255,.25)');gradient.addColorStop(.50,'rgba(255,255,255,.17)');gradient.addColorStop(1,'rgba(255,255,255,0)');
@@ -239,6 +262,11 @@ function addFootContacts(mesh,holder,contacts,deckY){
 export function createRowingRig(mesh,named,holder,craft,spec){
  const rest=new Map(mesh.skeleton.bones.map(b=>[b,b.quaternion.clone()]));
  const bind=Object.fromEntries(spec.bones.map(b=>[b.name,V(...b.position)]));
+ const rootRest=named.root.position.clone(),meshRotation=mesh.getWorldQuaternion(new T.Quaternion()).invert();
+ const legs=['L','R'].map(side=>({side,foot:jointPosition(mesh,named,`foot.${side}`),
+  orientation:named[`foot.${side}`].getWorldQuaternion(new T.Quaternion()).premultiply(meshRotation),
+  upper:bind[`upperleg01.${side}`].distanceTo(bind[`lowerleg01.${side}`]),
+  lower:bind[`lowerleg01.${side}`].distanceTo(bind[`foot.${side}`])}));
  const arms=['L','R'].map((side,index)=>{
   const wrist=named[`wrist.${side}`],forward=bind[`finger3-1.${side}`].clone().sub(bind[`wrist.${side}`]);
   const width=bind[`finger2-1.${side}`].clone().sub(bind[`finger5-1.${side}`]).normalize();forward.addScaledVector(width,-forward.dot(width)).normalize();
@@ -265,9 +293,18 @@ export function createRowingRig(mesh,named,holder,craft,spec){
  function apply(t){
   lastTime=t;const pose=craft.rowingVisual?.pose,blend=T.MathUtils.clamp(pose?.blend||0,0,1);
   for(const [bone,q] of rest)bone.quaternion.copy(q);
+  named.root.position.copy(rootRest);
   named.head.rotation.y=Math.sin(t*.23)*.065*(1-blend);named.neck01.rotation.x=Math.sin(t*.36)*.012*(1-blend);named.spine02.rotation.x=Math.sin(t*1.3)*.004;
   if(blend<=.0001){if(pose)pose.highHandError=null;mesh.updateMatrixWorld(true);return;}
   const lean=pose.torsoLean||0,twist=pose.torsoTwist||0;
+  // Transfer weight through the pelvis during the actual stroke. Ankles are
+  // solved back to their saved deck contacts below; the body never slides as a
+  // rigid prop, and this motion does not invent a second animation clock.
+  named.root.position.x+=T.MathUtils.clamp(twist*.08,-.009,.009)*blend;
+  named.root.position.z-=lean*.065*blend;
+  named.root.position.y-=Math.abs(lean)*.036*blend;
+  named['pelvis.L'].rotation.y+=twist*.085;
+  named['pelvis.R'].rotation.y+=twist*.085;
   // A slight bend at the lower back keeps the parked far hand reachable during
   // one-sided strokes and a rolling hull; knees and soles remain planted.
   const farHand=Math.max(pose.hands?.[0]?.z||0,pose.hands?.[1]?.z||0);
@@ -301,7 +338,16 @@ export function createRowingRig(mesh,named,holder,craft,spec){
    const elbowTarget=origin.clone().addScaledVector(direction,along).addScaledVector(pole,height);
    aim(shoulder,elbow,elbowTarget);aim(elbow,wrist,target);
    const targetFrame=new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(width,forward,normal));
-   const desired=targetFrame.multiply(arm.frameInverse),parentRotation=wrist.parent.getWorldQuaternion(new T.Quaternion()).premultiply(inverseMeshRotation).invert();
+   const desired=targetFrame.multiply(arm.frameInverse),forearm=named[`lowerarm02.${side}`];
+   let parentRotation=wrist.parent.getWorldQuaternion(new T.Quaternion()).premultiply(inverseMeshRotation).invert();
+   const localWrist=parentRotation.clone().multiply(desired),relative=localWrist.clone().multiply(rest.get(wrist).clone().invert());
+   const axis=wrist.position.clone().normalize(),projection=axis.x*relative.x+axis.y*relative.y+axis.z*relative.z;
+   const twistRotation=new T.Quaternion(axis.x*projection,axis.y*projection,axis.z*projection,relative.w).normalize();
+   // Share pronation through the existing lower-forearm bone, instead of putting
+   // all rotation into a pinched wrist/cuff. Its axis passes through the wrist,
+   // so the exact palm point and the authored finger grip do not move.
+   forearm.quaternion.copy(rest.get(forearm)).multiply(new T.Quaternion().slerp(twistRotation,.32));forearm.updateMatrixWorld(true);
+   parentRotation=wrist.parent.getWorldQuaternion(new T.Quaternion()).premultiply(inverseMeshRotation).invert();
    wrist.quaternion.copy(parentRotation.multiply(desired));wrist.updateMatrixWorld(true);
    // A marker through the palm's anatomical frame follows the actual shaft;
    // fingers curl over that shaft instead of rotating a mitten around the wrist.
@@ -322,6 +368,19 @@ export function createRowingRig(mesh,named,holder,craft,spec){
   // The mode transition blends from the saved relaxed pose. Its phase and hand
   // targets always come from the shared physical stroke, including a quality switch.
   if(blend<.9999){const targetRotation=new T.Quaternion();for(const [bone,q] of rest){targetRotation.copy(bone.quaternion);bone.quaternion.copy(q).slerp(targetRotation,blend);}}
+  // Two-bone legs keep each sole's position AND orientation fixed while hips
+  // transfer weight. Run after the mode blend so its in-between poses also stay
+  // planted; bending ankles alone would let toes scrape through the deck.
+  for(const leg of legs){
+   const hip=named[`upperleg01.${leg.side}`],knee=named[`lowerleg01.${leg.side}`],foot=named[`foot.${leg.side}`];
+   const origin=bonePoint(hip),direction=leg.foot.clone().sub(origin),distance=direction.length();
+   const d=T.MathUtils.clamp(distance,.01,leg.upper+leg.lower-.00001);direction.normalize();
+   const along=(leg.upper*leg.upper-leg.lower*leg.lower+d*d)/(2*d),height=Math.sqrt(Math.max(0,leg.upper*leg.upper-along*along));
+   const pole=V(0,0,1).addScaledVector(direction,-direction.z).normalize();
+   aim(hip,knee,origin.clone().addScaledVector(direction,along).addScaledVector(pole,height));aim(knee,foot,leg.foot);
+   const parentRotation=foot.parent.getWorldQuaternion(new T.Quaternion()).premultiply(inverseMeshRotation).invert();
+   foot.quaternion.copy(parentRotation.multiply(leg.orientation));foot.updateMatrixWorld(true);
+  }
   mesh.updateMatrixWorld(true);mesh.skeleton.update();
   pose.highHandError=0;
   for(const arm of arms){const contact=bonePoint(arm.grip).multiply(holder.scale).add(holder.position);pose.highHandError=Math.max(pose.highHandError,contact.distanceTo(pose.hands[arm.index]));}
@@ -346,10 +405,11 @@ async function createBoatman(craft,materials,renderer){
   const Typed=a.type==='f'?Float32Array:a.type==='H'?Uint16Array:Uint32Array;const attribute=new T.BufferAttribute(new Typed(buffer,a.offset,a.length),a.itemSize);
   if(name==='index')geometry.setIndex(attribute);else geometry.setAttribute(name,attribute);
  }
- geometry.computeVertexNormals();for(const g of spec.groups)geometry.addGroup(g.start,g.count,g.materialIndex);
+ refineClothingGeometry(geometry,spec.groups);for(const g of spec.groups)geometry.addGroup(g.start,g.count,g.materialIndex);
  const skin=new T.MeshPhysicalMaterial({color:0xeee4d8,map:skinMap,roughness:.77,metalness:0,clearcoat:0,specularIntensity:.3});
- const fabric=materials.fabric;const shirt=new T.MeshStandardMaterial({color:0xe8dbc0,map:clothesMap,normalMap:clothesNormal,normalScale:new T.Vector2(.42,.42),roughness:.94});
- const trousers=new T.MeshStandardMaterial({color:0x738477,map:clothesMap,normalMap:clothesNormal,normalScale:new T.Vector2(.40,.40),roughness:.92});const shoes=new T.MeshStandardMaterial({color:0x382d25,roughness:.91,side:T.DoubleSide});const hair=new T.MeshStandardMaterial({color:0x282721,roughness:.88});
+ const fabric=materials.fabric;const shirt=new T.MeshPhysicalMaterial({color:0xeaddbd,map:clothesMap,normalMap:clothesNormal,normalScale:new T.Vector2(.56,.56),roughness:.91,sheen:.32,sheenRoughness:.86,sheenColor:0xbfb9a9});
+ const trousers=new T.MeshPhysicalMaterial({color:0x647c73,map:clothesMap,normalMap:clothesNormal,normalScale:new T.Vector2(.48,.48),roughness:.85,sheen:.19,sheenRoughness:.92,sheenColor:0x9caeaa});const shoes=new T.MeshStandardMaterial({color:0x382d25,roughness:.91,side:T.DoubleSide});const hair=new T.MeshStandardMaterial({color:0x282721,roughness:.88});
+ for(const [material,surface] of [[skin,'skin'],[shirt,'cloth'],[trousers,'cloth'],[shoes,'rubber'],[hair,'cloth']])material.userData.weatherSurface=surface;
  const mesh=createdMesh=new T.SkinnedMesh(geometry,[skin,shirt,trousers,shoes,hair]);mesh.name='MakeHuman sculpted and rigged boatman';mesh.castShadow=true;mesh.receiveShadow=true;mesh.frustumCulled=false;
  const bones=spec.bones.map(b=>{const bone=new T.Bone();bone.name=b.name;bone.position.fromArray(b.position);return bone;});
  spec.bones.forEach((b,i)=>{if(b.parent>=0){bones[i].position.sub(V(...spec.bones[b.parent].position));bones[b.parent].add(bones[i]);}else mesh.add(bones[i]);});
@@ -358,7 +418,7 @@ async function createBoatman(craft,materials,renderer){
  // and breathing animate through its skeleton, never by wobbling rigid parts.
  poseHuman(mesh,named);
  const holder=createdHolder=new T.Group();holder.name='High boatman';holder.add(mesh);holder.visible=false;craft.person.add(holder);
- const hat=new T.Group();hat.name='Sun hat';const hatMaterial=new T.MeshStandardMaterial({color:0xc4b693,map:fabric,roughness:.96});
+ const hat=new T.Group();hat.name='Sun hat';const hatMaterial=new T.MeshStandardMaterial({color:0xc4b693,map:fabric,roughness:.96});hatMaterial.userData.weatherSurface='cloth';
  const brim=new T.Mesh(new T.CylinderGeometry(.225,.233,.014,48),hatMaterial),crown=new T.Mesh(new T.SphereGeometry(.155,32,18,0,Math.PI*2,0,Math.PI/2),hatMaterial);brim.position.y=.10;crown.position.y=.10;crown.scale.y=.55;hat.add(brim,crown);
  hat.position.set(0,.055,-.011);named.head.add(hat);hat.traverse(o=>{if(o.isMesh)o.castShadow=true;});
  // The basemesh eyelids are open; insert sclera and irises at authored eye joints.
@@ -481,6 +541,34 @@ export function createFaunaDetailController({craft,human,replacements,crew}){
  };
 }
 
+export function alignHighWildlife(item,time,climate={}){
+ const {detail,source}=item,parent=detail.parent;if(!parent)return;
+ if(item.kind==='bird'&&!source.flight){
+  detail.position.y=0;
+  const foot=parent.localToWorld(V(0,source.species==='little-egret'?.01:.006,-.035));
+  let ground=source.home.y;
+  if(source.species.includes('kingfisher')){
+   // Match the existing sloping perch's actual upper surface; turning toward
+   // the boat no longer makes the toes hover above its branch junction.
+   const dx=-source.side*.7,dz=-.2;
+   const u=T.MathUtils.clamp(((foot.x-source.home.x)*dx+(foot.z-source.home.z)*dz)/(dx*dx+dz*dz),0,1);
+   ground=source.home.y-.04+u*.06+.032;
+  }
+  parent.updateWorldMatrix(true,false);
+  detail.position.y=(ground-foot.y)/parent.matrixWorld.elements[5];
+ }else if(item.kind==='croc'&&source.swims&&typeof climate.waterHeight==='function'){
+  // Both nostrils and back ride the same low-amplitude field used by the boat.
+  // Apply the correction only to High detail, leaving its existing route and
+  // Standard source untouched. Pitch follows a body-length sample, not noise.
+  const yaw=parent.rotation.y,x=parent.position.x,z=parent.position.z;
+  const wave=climate.waterHeight(x,z,time),ahead=climate.waterHeight(x-Math.sin(yaw)*2,z-Math.cos(yaw)*2,time),behind=climate.waterHeight(x+Math.sin(yaw)*2,z+Math.cos(yaw)*2,time);
+  // This sculpture's nostrils sit 0.265 m above its origin (before the existing
+  // 1.08 scale). Keep them just clear of the water rather than 15 mm submerged.
+  detail.position.y=(wave-.27-parent.position.y)/parent.scale.y;
+  detail.rotation.x=T.MathUtils.clamp((ahead-behind)/4,-.018,.018);
+ }
+}
+
 export async function createHighFauna({scene,craft,birds,wildlife,traffic,renderer,onProgress=()=>{}}){
  seed=37119;onProgress('Preparing detailed wildlife');
  const scaleMap=surface('scales'),featherMap=surface('feather'),fabric=surface('fabric',256);scaleMap.anisotropy=8;fabric.repeat.set(7,7);
@@ -490,6 +578,7 @@ export async function createHighFauna({scene,craft,birds,wildlife,traffic,render
   bare:new T.MeshStandardMaterial({vertexColors:true,roughness:.52}),
   hide:new T.MeshStandardMaterial({map:scaleMap,bumpMap:scaleMap,bumpScale:.012,vertexColors:true,roughness:.84}),fabric
  };
+ for(const [material,surface] of [[materials.feathers,'feathers'],[materials.plumage,'feathers'],[materials.bare,'hide'],[materials.hide,'hide']])material.userData.weatherSurface=surface;
  const replacements=[],ownedRoots=[],templates=new Map();let human=null,enabled=false,crew=[],lastUpdateTime=0;
  try{
   for(let i=0;i<birds.birds.length;i++){
@@ -513,12 +602,13 @@ export async function createHighFauna({scene,craft,birds,wildlife,traffic,render
   geometries.forEach(g=>g.dispose());failedMaterials.forEach(m=>m.dispose());failedTextures.forEach(t=>t.dispose());skeletons.forEach(s=>s.dispose());throw error;
  }
  const detailController=createFaunaDetailController({craft,human,replacements,crew});
- function update(t,dt){
+ function update(t,dt,climate){
   lastUpdateTime=t;
   if(!enabled)return;
   detailController.update();
   for(const item of replacements){
    const parent=item.detail.parent;if(!item.active)continue;
+   alignHighWildlife(item,t,climate);
    if(item.kind==='bird'&&item.source.flight){item.highWings.forEach((wing,i)=>{wing.rotation.z=item.source.wings[i].rotation.z;});}
    if(item.kind==='croc'){item.tail.forEach((tail,i)=>tail.rotation.copy(item.source.joints[i].rotation));if(!item.source.swims)item.jaw.rotation.x=Math.max(0,Math.sin(t*.07+parent.position.z))*.035;}
   }

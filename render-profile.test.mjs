@@ -19,6 +19,22 @@ function withRenderer(run){
 }
 const pass=(calls,triangles,cpuMs)=>({calls,triangles,cpuMs});
 
+test('context recovery rebinds the replaced shadow object and disables new auto-reset',()=>withRenderer(({renderer,submit,profile,frame})=>{
+ frame(()=>submit(100,10000,20));
+ renderer.shadowMap={render(fn){return fn();}};renderer.info.autoReset=true;profile.rebind();assert.equal(profile.getStats(),null);assert.equal(renderer.info.autoReset,false);
+ frame(()=>{renderer.shadowMap.render(()=>submit(2,90,.4));submit(3,80,.6);});
+ assert.deepEqual(profile.getStats().shadow,pass(2,90,.4));assert.deepEqual(profile.getStats().main,pass(3,80,.6));
+}));
+
+test('post work is separate from main, reflection and shadows and restores after failure',()=>withRenderer(({renderer,submit,profile})=>{
+ profile.begin();renderer.render(()=>submit(3,500,2));
+ profile.post(()=>{renderer.render(()=>submit(1,1,.1));renderer.render(()=>submit(1,1,.2));});
+ assert.throws(()=>profile.post(()=>{throw new Error('post failed');}),/post failed/);
+ renderer.render(()=>submit(2,200,1));profile.end();
+ assert.deepEqual(profile.getStats().main,pass(5,700,3));assert.deepEqual(profile.getStats().post,pass(2,2,.3));
+ assert.deepEqual(profile.getStats().reflection,pass(0,0,0));assert.deepEqual(profile.getStats().total,pass(7,702,3.3));
+}));
+
 test('one main render records actual submitted work and preserves arguments and return values',()=>withRenderer(({renderer,submit,profile,frame})=>{
   assert.equal(renderer.info.autoReset,false);assert.equal(profile.getStats(),null);
   const output=frame(camera=>{assert.equal(camera,'camera');submit(7,2300,4.25);return 'rendered';});

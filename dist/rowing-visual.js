@@ -58,7 +58,7 @@ export function createRowingVisual(craft,scene){
     const handle=mesh(new T.CylinderGeometry(.035,.035,.22,10),grip,root,-SCULLING.handle+.04,0,0);handle.rotation.z=-Math.PI/2;
     const collar=mesh(new T.TorusGeometry(.064,.013,5,12),grip,group,sign*SCULLING.pivotX,SCULLING.pivotY,SCULLING.pivotZ);collar.rotation.y=Math.PI/2;
     root.position.set(sign*SCULLING.pivotX,SCULLING.pivotY,SCULLING.pivotZ);
-    oars.push({root,bladeGroup,sign,tip:V(),previousWet:false,lastRipple:-10});
+    oars.push({root,bladeGroup,sign,tip:V(),lastTip:V(),hasTip:false,previousWet:false,lastRipple:-10});
     // Short braces carry the stern rowlocks from the existing raised gunwale.
     for(const z of [SCULLING.pivotZ-.18,SCULLING.pivotZ+.18]){
       const brace=segment(grip,group,.022);placeSegment(brace,V(sign*1.10,.90,z),V(sign*SCULLING.pivotX,SCULLING.pivotY,SCULLING.pivotZ));
@@ -101,15 +101,16 @@ export function createRowingVisual(craft,scene){
       o.tip.copy(o.root.localToWorld(V(SCULLING.blade,0,0)));
       const surface=waterHeight(o.tip.x,o.tip.z,time),wet=equipped>.92&&p.active&&o.tip.y<surface+.045;
       if(dt>0&&wet&&(!o.previousWet||time-o.lastRipple>(high?.16:.27))){
-        const entry=!o.previousWet;onContact(o.tip.x,o.tip.z,entry?.34:.16,side,entry);o.lastRipple=time;contacts++;
+        const entry=!o.previousWet,travel={x:o.hasTip?o.tip.x-o.lastTip.x:0,z:o.hasTip?o.tip.z-o.lastTip.z:1,entry};onContact(o.tip.x,o.tip.z,entry?.34:.16,side,entry,travel);o.lastRipple=time;contacts++;
         if(high&&(entry||p.phase==='power')){const at=o.tip.clone();at.y=surface+.015;splash(at,side);}
       }
       o.previousWet=wet;
+      if(dt>0){o.lastTip.copy(o.tip);o.hasTip=true;}
     }
     standardHuman.update(time,pose);
     let visibleDrops=false;
     drops.forEach((d,i)=>{if(dt>0){d.life=Math.max(0,d.life-dt);if(d.life>0){d.v.y-=2.8*dt;d.p.addScaledVector(d.v,dt);}}const visible=high&&d.life>0;visibleDrops||=visible;dummy.position.copy(d.p);dummy.scale.setScalar(visible?Math.min(1,d.life*10):0);dummy.updateMatrix();particles.setMatrixAt(i,dummy.matrix);});
     particles.visible=visibleDrops;particles.instanceMatrix.needsUpdate=true;
   }
-  return {group,pose,update,getStats(){return {phase:pose.phase,active:pose.active,blend:pose.blend,contacts,paddles:group.visible?2:0,park:clock.park,station:clock.station,handError:pose.highHandError??pose.handError??null,bladePositions:oars.map(o=>o.tip.toArray())};},reset(){clock.reset();drops.forEach(d=>d.life=0);contacts=0;oars.forEach(o=>{o.previousWet=false;o.lastRipple=-10;});}};
+  return {group,pose,update,getStats(){return {phase:pose.phase,active:pose.active,blend:pose.blend,contacts,paddles:group.visible?2:0,park:clock.park,station:clock.station,handError:pose.highHandError??pose.handError??null,bladePositions:oars.map(o=>o.tip.toArray())};},reset(){clock.reset();drops.forEach(d=>d.life=0);contacts=0;oars.forEach(o=>{o.previousWet=false;o.hasTip=false;o.lastRipple=-10;});}};
 }

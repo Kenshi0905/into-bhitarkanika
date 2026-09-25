@@ -179,8 +179,29 @@ export function createTraffic(scene){
  shared.canvas.side=T.DoubleSide;
  const vessels=createTrafficState();
  for(const v of vessels){v.group=buildVessel(v,shared);v.group.position.set(v.x,0,v.z);v.group.rotation.y=v.heading;scene.add(v.group);}
+ const surfacePoses=new WeakMap(),forward=new T.Vector3(),right=new T.Vector3(),up=new T.Vector3(),back=new T.Vector3(),surfaceNormal=new T.Vector3(),basis=new T.Matrix4();
  return {vessels,update(t,dt,player){
   stepTraffic(vessels,dt,player,t);
   for(const v of vessels){const g=v.group;g.position.set(v.x,.045*Math.sin(t*1.25+v.z*.14)+.02*Math.sin(t*1.7+v.x*.3),v.z);g.rotation.set(.010*Math.sin(t*1.45+v.phase),v.heading,.013*Math.sin(t*1.3+v.phase));g.userData.motor.rotation.y=Math.sin(t*1.4+v.phase)*.055;g.userData.motor.rotation.z=Math.sin(t*21+v.phase)*.009*v.speed;if(g.userData.lamp)g.userData.lamp.material.emissiveIntensity=.20+Math.pow(Math.max(0,Math.sin(t*.7)),12)*.65;}
+ },followSurface(time,dt,waterHeight){
+  if(typeof waterHeight!=='function')return;
+  dt=clamp(Number.isFinite(dt)?dt:0,0,.1);
+  for(const v of vessels){
+   const fx=-Math.sin(v.heading),fz=-Math.cos(v.heading),rx=Math.cos(v.heading),rz=-Math.sin(v.heading),halfLength=v.length*.4,halfBeam=v.width*.42;
+   const middle=waterHeight(v.x,v.z,time),fore=waterHeight(v.x+fx*halfLength,v.z+fz*halfLength,time),aft=waterHeight(v.x-fx*halfLength,v.z-fz*halfLength,time);
+   const starboard=waterHeight(v.x+rx*halfBeam,v.z+rz*halfBeam,time),port=waterHeight(v.x-rx*halfBeam,v.z-rz*halfBeam,time);
+   if(!Number.isFinite(middle+fore+aft+starboard+port))continue;
+   let pose=surfacePoses.get(v);
+   if(!pose||time<pose.time||time-pose.time>.25){pose={pitch:0,roll:0,time};surfacePoses.set(v,pose);}
+   pose.pitch=ease(pose.pitch,clamp(Math.atan2(fore-aft,halfLength*2),-.12,.12),4,dt);
+   pose.roll=ease(pose.roll,clamp(Math.atan2(starboard-port,halfBeam*2),-.12,.12),4,dt);pose.time=time;
+   const pitchSlope=Math.tan(pose.pitch),rollSlope=Math.tan(pose.roll);
+   // Preserve the navigation heading in the horizontal bow direction. Building
+   // a tangent basis also works at east/west headings, where assigning XYZ
+   // pitch and roll with a fixed Euler.y cannot represent the sampled plane.
+   surfaceNormal.set(-fx*pitchSlope-rx*rollSlope,1,-fz*pitchSlope-rz*rollSlope).normalize();
+   forward.set(fx,pitchSlope,fz).normalize();right.crossVectors(forward,surfaceNormal).normalize();up.crossVectors(right,forward).normalize();back.copy(forward).negate();
+   basis.makeBasis(right,up,back);v.group.quaternion.setFromRotationMatrix(basis);v.group.position.y=middle;
+  }
  }};
 }
